@@ -4,6 +4,12 @@ project( VeniVidi )
 
 find_package( OpenCV REQUIRED )
 
-add_executable( VeniVidi src/VeniVidi.cpp )
+file(GLOB SOURCEFILES src/*)
+
+include_directories(include)
+
+set (CMAKE_CXX_FLAGS "-std=c++11")
+
+add_executable( VeniVidi ${SOURCEFILES} )
 
 target_link_libraries( VeniVidi ${OpenCV_LIBS} )
