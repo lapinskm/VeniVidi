@@ -15,8 +15,6 @@ class FeaturePointExtractor
                                finishCallback cb,
                                void* userData);
   private:
-    Ptr<FeatureDetector>  detector;
-    //Ptr<FeatureExtractor> extractor;
     struct threadRoutineData
     {
        Mat image;

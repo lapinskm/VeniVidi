@@ -1,19 +1,18 @@
 #include "FeaturePointExtractor.hpp"
-#include "FeaturePoint.hpp"
+#include "ImageFeaturePoints.hpp"
 
-//constuctor
-FeaturePointExtractor::FeaturePointExtractor()
-{
-   detector=FeatureDetector::create("SURF");
-}
-
-//this function extracts points and call the callback
+//this function extracts points and call the callback with result
 void FeaturePointExtractor::extractorThreadRoutine(void*  data)
 {
    struct threadRoutineData* routineData;
    routineData = static_cast<struct threadRoutineData*>(data);
-   list<FeaturePoint> featurePoints;
-   //TODO: use opencv extractor
+   ImageFeaturePoints featurePoints;
+   Ptr<FeatureDetector>     detector=FeatureDetector::create("SURF");
+   Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create("SURF");
+
+   detector  -> detect  (routineData->image,featurePoints.keypoints);
+   extractor -> compute (routineData->image,featurePoints.keypoints,
+                         featurePoints.descriptors);
 
    //launch callback when finish
    routineData->cb(&featurePoints, routineData->userData);
