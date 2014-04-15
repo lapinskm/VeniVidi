@@ -4,25 +4,30 @@ project( VeniVidi )
 
 find_package( OpenCV REQUIRED )
 
-file(GLOB SOURCEFILES src/*)
-
 include_directories(include)
-
 set (CMAKE_CXX_FLAGS "-std=c++11")
 
-add_executable( VeniVidi ${SOURCEFILES} )
+#LIBRARY
+file(GLOB LIB_SOURCE lib_src/*)
+
+add_library( VeniVidi ${LIB_SOURCE} )
 
 target_link_libraries( VeniVidi ${OpenCV_LIBS} )
+
+#EXECUTABLE
+file(GLOB APP_SOURCE app_src/*)
+
+add_executable( VeniVidiVici  ${APP_SOURCE} )
+target_link_libraries(VeniVidiVici VeniVidi)
 
 #UNITTESTS
 add_subdirectory(gtest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-file(GLOB TESTFILES test/*.cpp) 
+file(GLOB TEST_SOURCE test/*.cpp) 
 
-add_executable( runUnitTests ${SOURCEFILES} ${TESTFILES} )
+add_executable( runUnitTests ${TEST_SOURCE} )
 
-# Link test executable against gtest & gtest_main
-target_link_libraries(runUnitTests gtest gtest_main  ${OpenCV_LIBS})
+target_link_libraries(runUnitTests gtest gtest_main  ${OpenCV_LIBS} VeniVidi)
 add_test( runUnitTests runUnitTests )
 
