@@ -9,15 +9,15 @@ typedef void (*finishCallback)(void* inputData,void* outputData);
 class FeaturePointExtractor
 {
   public:
-    FeaturePointExtractor();
-    ~FeaturePointExtractor();
-    static void startExtraction(Mat image,
+    FeaturePointExtractor(){};
+    ~FeaturePointExtractor(){};
+    static void startExtraction(Mat * image,
                                finishCallback cb,
                                void* userData);
   private:
     struct threadRoutineData
     {
-       Mat image;
+       Mat * image;
        finishCallback cb;
        void* userData;
     };
