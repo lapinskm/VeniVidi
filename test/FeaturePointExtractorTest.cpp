@@ -1,9 +1,7 @@
 #include <stdio.h>
-
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "FeaturePointExtractor.hpp"
 #include "ImageFeaturePoints.hpp"
-
 
 using namespace cv;
 
@@ -23,6 +21,7 @@ class FeaturePointExtractorTest : public testing::Test
      fpe=new FeaturePointExtractor();
      callbackCalled=false;
      callbackFinished=false;
+     cout<<"[ Test body] \n";
   }
 
   // virtual void TearDown() will be called after each test is run.
@@ -32,6 +31,7 @@ class FeaturePointExtractorTest : public testing::Test
   virtual void TearDown()
   {
      cout<<"[ TearDown ]\n";
+     image.release();
      delete fpe;
      callbackCalled=false;
   }
@@ -41,7 +41,7 @@ class FeaturePointExtractorTest : public testing::Test
      cout<<"[          ] InsideCallback\n";
      FeaturePointExtractorTest* owner;
      owner=static_cast<FeaturePointExtractorTest*>(userData);
-    // owner->cbResult = static_cast<ImageFeaturePoints*>(result);
+     owner->cbResult = static_cast<ImageFeaturePoints*>(result);
      owner->callbackCalled=true;
      owner->callbackFinished=true;
   }
@@ -60,39 +60,78 @@ class FeaturePointExtractorTest : public testing::Test
 // instead of TEST.
 
 // Tests the default c'tor.
-TEST_F(FeaturePointExtractorTest, DefaultConstructor) 
+TEST_F(FeaturePointExtractorTest, defaultConstructor)
 {
    ASSERT_TRUE(fpe);
 }
 
-//test if callback is called
-TEST_F(FeaturePointExtractorTest, CallbackIsCalled)
+TEST_F(FeaturePointExtractorTest, nullParameters)
 {
-   cout<<"[ Test body] \n";
+   ASSERT_TRUE(fpe);
+   fpe->startExtraction(NULL, callback, this);
+   fpe->startExtraction(&image, NULL, this);
+   sleep(1);
+   cout<<"[          ] app finished without crash\n";
+}
+
+//test if callback is called
+TEST_F(FeaturePointExtractorTest, callbackIsCalled)
+{
    ASSERT_TRUE(fpe);
    ASSERT_TRUE( image.data );
 
    fpe->startExtraction(&image, callback, this);
-   cout<<"[          ] Extraction launched\n";
+   cout<<"[          ] Extractor launched\n";
    /*FIXME: Find more realible method than waiting some amount
    of time before checking if callback was called*/
    cout<<"[          ] waiting 2 sec for finish extraction\n";
    sleep(2);
-   ASSERT_TRUE(callbackCalled);
+   EXPECT_TRUE(callbackCalled);
+}
+
+//check if result is not NULL
+TEST_F(FeaturePointExtractorTest, resultNotNull)
+{
+    fpe->startExtraction(&image, callback, this);
+    cout<<"[          ] Extractor launched\n";
+    while(!callbackCalled);
+    ASSERT_TRUE(cbResult);
+}
+
+TEST_F(FeaturePointExtractorTest, blankImageCase)
+{
+    fpe->startExtraction(&image, callback, this);
+    cout<<"[          ] Extractor launched\n";
+    while(!callbackCalled);
+    //check if result is not NULL
+    ASSERT_TRUE(cbResult);
+    unsigned keypointCount;
+    unsigned descriptorCount;
+    keypointCount=cbResult->keypoints.size();
+    descriptorCount=cbResult->descriptors.size().height;
+    cout<<"[          ] Check if blank image gives no features\n";
+    EXPECT_EQ(keypointCount,0);
+    EXPECT_EQ(descriptorCount,0);
 }
 
 //test if it finds any feature points
-TEST_F(FeaturePointExtractorTest, LenaImageCase)
+TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
+    image.release();//release default one
     image = imread( "lena-gray.png", 1 );
     fpe->startExtraction(&image, callback, this);
+    cout<<"[          ] Extractor launched\n";
     while(!callbackCalled);
+    //check if result is not NULL
+    ASSERT_TRUE(cbResult);
+
+    unsigned keypointCount;
+    unsigned descriptorCount;
+    keypointCount=cbResult->keypoints.size();
+    descriptorCount=cbResult->descriptors.size().height;
+    cout<<"[          ] Check if lena image gives some features\n";
+    EXPECT_GT(keypointCount,10);
+    EXPECT_GT(descriptorCount,10);
+    EXPECT_EQ(descriptorCount,keypointCount);
 }
-
-TEST_F(FeaturePointExtractorTest, BlankImageCase)
-{
-
-}
-
-
 
