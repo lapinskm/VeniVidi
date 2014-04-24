@@ -1,10 +1,12 @@
+#ifndef VV_FEATUREPOINTEXTRACTOR_H
+#define VV_FEATUREPOINTEXTRACTOR_H
+
 #include <thread>
 #include <opencv2/opencv.hpp>
+#include "common.hpp"
 
 using namespace cv;
 using namespace std;
-
-typedef void (*finishCallback)(void* inputData,void* outputData);
 
 class FeaturePointExtractor
 {
@@ -24,4 +26,5 @@ class FeaturePointExtractor
 
     static void extractorThreadRoutine(void* data);
 };
+#endif /*VV_FEATUREPOINTEXTRACTOR_H*/
 
