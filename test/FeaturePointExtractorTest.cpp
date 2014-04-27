@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
+#include "common.hpp"
 #include "FeaturePointExtractor.hpp"
 #include "ImageFeaturePoints.hpp"
 
@@ -68,9 +69,13 @@ TEST_F(FeaturePointExtractorTest, defaultConstructor)
 TEST_F(FeaturePointExtractorTest, nullParameters)
 {
    ASSERT_TRUE(fpe);
-   fpe->startExtraction(NULL, callback, this);
-   fpe->startExtraction(&image, NULL, this);
-   sleep(1);
+   VVResultCode ret;
+   ret=fpe->startExtraction(NULL, callback, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpe->startExtraction(&image, NULL, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpe->startExtraction(NULL, NULL, this);
+   EXPECT_EQ(ret,vVWrongParams);
    cout<<"[          ] app finished without crash\n";
 }
 
@@ -79,8 +84,9 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 {
    ASSERT_TRUE(fpe);
    ASSERT_TRUE( image.data );
-
-   fpe->startExtraction(&image, callback, this);
+   VVResultCode ret;
+   ret=fpe->startExtraction(&image, callback, this);
+   EXPECT_EQ(ret, vVSuccess);
    cout<<"[          ] Extractor launched\n";
    /*FIXME: Find more realible method than waiting some amount
    of time before checking if callback was called*/
@@ -92,7 +98,9 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 //check if result is not NULL
 TEST_F(FeaturePointExtractorTest, resultNotNull)
 {
-    fpe->startExtraction(&image, callback, this);
+    VVResultCode ret;
+    ret=fpe->startExtraction(&image, callback, this);
+    EXPECT_EQ(ret, vVSuccess);
     cout<<"[          ] Extractor launched\n";
     while(!callbackCalled);
     ASSERT_TRUE(cbResult);
@@ -100,8 +108,10 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
 
 TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
-    fpe->startExtraction(&image, callback, this);
+    VVResultCode ret;
+    ret=fpe->startExtraction(&image, callback, this);
     cout<<"[          ] Extractor launched\n";
+    EXPECT_EQ(ret, vVSuccess);
     while(!callbackCalled);
     //check if result is not NULL
     ASSERT_TRUE(cbResult);
@@ -119,7 +129,9 @@ TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
     image.release();//release default one
     image = imread( "lena-gray.png", 1 );
-    fpe->startExtraction(&image, callback, this);
+    VVResultCode ret;
+    ret=fpe->startExtraction(&image, callback, this);
+    EXPECT_EQ(ret, vVSuccess);
     cout<<"[          ] Extractor launched\n";
     while(!callbackCalled);
     //check if result is not NULL

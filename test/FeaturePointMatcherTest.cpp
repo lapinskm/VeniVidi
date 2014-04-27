@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <gtest/gtest.h>
+#include "common.hpp"
 #include "FeaturePointMatcher.hpp"
-#include "ImageFeaturePoints.hpp"
 
 using namespace cv;
+
 
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointMatcherTest : public testing::Test
@@ -40,7 +41,7 @@ class FeaturePointMatcherTest : public testing::Test
      cout<<"[          ] InsideCallback\n";
      FeaturePointMatcherTest* owner;
      owner=static_cast<FeaturePointMatcherTest*>(userData);
-     owner->cbResult = static_cast<ImageFeaturePoints*>(result);
+     owner->cbResult = static_cast<std::vector< DMatch >*>(result);
      owner->callbackCalled=true;
      owner->callbackFinished=true;
   }
@@ -50,7 +51,7 @@ class FeaturePointMatcherTest : public testing::Test
   FeaturePointMatcher* fpm;
   bool callbackCalled;
   bool callbackFinished;
-  ImageFeaturePoints* cbResult;
+  std::vector< DMatch >* cbResult;
   //int foo;
   //int bar;
 };
@@ -61,10 +62,24 @@ class FeaturePointMatcherTest : public testing::Test
 // Tests the default c'tor.
 TEST_F(FeaturePointMatcherTest, defaultConstructor)
 {
+   EXPECT_TRUE(fpm);
 }
 
 TEST_F(FeaturePointMatcherTest, nullParameters)
 {
+   ASSERT_TRUE(fpm);
+   VVResultCode ret;
+   Mat descr=Mat::zeros(1, 1, CV_32F);
+   ret=fpm->startMatching(NULL, &descr, callback, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpm->startMatching(&descr, NULL, callback, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpm->startMatching(NULL, NULL, callback, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpm->startMatching(NULL, NULL, NULL, this);
+   EXPECT_EQ(ret,vVWrongParams);
+   ret=fpm->startMatching(&descr, &descr, NULL, this);
+   EXPECT_EQ(ret,vVWrongParams);
 }
 
 //test if callback is called
