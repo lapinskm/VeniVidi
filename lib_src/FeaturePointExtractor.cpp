@@ -5,6 +5,9 @@
 
 using namespace std;
 
+const char * FeaturePointExtractor::detectStr="FAST";
+const char * FeaturePointExtractor::extractStr="FREAK";
+
 //this function extracts points and call the callback with result
 void FeaturePointExtractor::extractorThreadRoutine(void*  data)
 {
@@ -12,8 +15,8 @@ void FeaturePointExtractor::extractorThreadRoutine(void*  data)
    struct threadRoutineData* routineData;
    routineData = static_cast<struct threadRoutineData*>(data);
    ImageFeaturePoints* featurePoints = new ImageFeaturePoints();
-   Ptr<FeatureDetector>     detector=FeatureDetector::create("FAST");
-   Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create("BRISK");
+   Ptr<FeatureDetector>     detector=FeatureDetector::create(detectStr);
+   Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create(extractStr);
 
    //cout<<"launching OpenCV detectors\n";
    if (detector && extractor)

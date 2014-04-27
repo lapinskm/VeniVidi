@@ -25,6 +25,8 @@ class FeaturePointExtractor
     };
 
     static void extractorThreadRoutine(void* data);
+    static const char* detectStr;
+    static const char* extractStr;
 };
 #endif /*VV_FEATUREPOINTEXTRACTOR_H*/
 
