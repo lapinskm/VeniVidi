@@ -13,9 +13,9 @@ class FeaturePointExtractor
   public:
     FeaturePointExtractor(){};
     ~FeaturePointExtractor(){};
-    static void startExtraction(Mat * image,
-                               finishCallback cb,
-                               void* userData);
+    static VVResultCode startExtraction(Mat * image,
+                                       finishCallback cb,
+                                       void* userData);
   private:
     struct threadRoutineData
     {

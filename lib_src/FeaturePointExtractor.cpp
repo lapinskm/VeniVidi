@@ -35,14 +35,14 @@ void FeaturePointExtractor::extractorThreadRoutine(void*  data)
 }
 
 //this function launches feature point extraction in new thread
-void FeaturePointExtractor::startExtraction(Mat* image,
-                                            finishCallback cb,
-                                            void* userData)
+VVResultCode FeaturePointExtractor::startExtraction(Mat* image,
+                                                    finishCallback cb,
+                                                    void* userData)
 {
    //check if parameters are not NULL (user data could be)
    if( NULL == image || NULL == cb )
    {
-      return;
+      return vVWrongParams;
    }
    //set up routine data structure
    struct threadRoutineData* data = new struct threadRoutineData ;
@@ -52,5 +52,6 @@ void FeaturePointExtractor::startExtraction(Mat* image,
    //launch extractor thread
    thread t(&extractorThreadRoutine,data);
    t.detach();
+   return vVSuccess;
 }
 

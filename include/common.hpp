@@ -3,11 +3,12 @@
 
 typedef void (*finishCallback)(void* inputData,void* outputData);
 
-enum VVResultCode
+typedef enum
 {
    vVSuccess=0,
    vVWrongParams,
    vVExecutionFailure,
    vVFailure
-};
+}
+VVResultCode;
 #endif /*VV_COMMON_H*/

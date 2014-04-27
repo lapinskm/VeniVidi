@@ -16,20 +16,24 @@ void FeaturePointMatcher::matcherThreadRoutine(void* data)
    std::vector< DMatch > *  matches;
    matches= new std::vector< DMatch >;
 
-   matcher.match( *(routineData->descriptors1), *(routineData->descriptors2), *matches);
+   matcher.match(*(routineData->descriptors1), 
+                 *(routineData->descriptors2),
+                 *matches);
 
    routineData->cb(matches, routineData->userData);
 }
 
 
 //this function launches feature point matching in new thread
-void FeaturePointMatcher::startMatching(Mat* descriptors1, Mat* descriptors2,
-                                        finishCallback cb, void* userData)
+VVResultCode FeaturePointMatcher::startMatching(Mat* descriptors1,
+                                                Mat* descriptors2,
+                                                finishCallback cb,
+                                                void* userData)
 {
    //check if parameters are not NULL (user data could be)
-   if( NULL == descriptors1 || NULL == descriptors2 )
+   if( NULL == descriptors1 || NULL == descriptors2 || NULL == cb)
    {
-      return;
+      return vVWrongParams;
    }
    //set up routine data structure
    struct threadRoutineData* data = new struct threadRoutineData ;
@@ -40,5 +44,6 @@ void FeaturePointMatcher::startMatching(Mat* descriptors1, Mat* descriptors2,
    //launch extractor thread
    thread t(&matcherThreadRoutine,data);
    t.detach();
+   return vVSuccess;
 }
 

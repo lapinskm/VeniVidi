@@ -12,10 +12,10 @@ class FeaturePointMatcher
   public:
     FeaturePointMatcher(){};
     ~FeaturePointMatcher(){};
-    static void startMatching(Mat* descriptors1,
-                              Mat* descriptors2,
-                              finishCallback cb,
-                              void* userData);
+    static VVResultCode startMatching(Mat* descriptors1,
+                                      Mat* descriptors2,
+                                      finishCallback cb,
+                                      void* userData);
 
  //   static VVResultCode mergeToMatchTable(MatchTable& mt,
  //                                         vector<DMatch> matches);
