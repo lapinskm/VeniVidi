@@ -17,17 +17,18 @@ class FeaturePointMatcher
                                       finishCallback cb,
                                       void* userData);
 
- //   static VVResultCode mergeToMatchTable(MatchTable& mt,
- //                                         vector<DMatch> matches);
+ //static VVResultCode mergeToMatchTable(MatchTable& mt,
+ //                                      vector<DMatch> matches);
   private:
     struct threadRoutineData
     {
-       Mat* descriptors1;
-       Mat* descriptors2;
-       finishCallback cb;
-       void* userData;
+      Mat* descriptors1;
+      Mat* descriptors2;
+      finishCallback cb;
+      void* userData;
     };
 
+    static VVResultCode removePoorMatches(vector<DMatch>* matches);
     static void matcherThreadRoutine(void* data);
 };
 
