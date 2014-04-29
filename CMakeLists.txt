@@ -31,6 +31,9 @@ target_link_libraries(runUnitTests gtest gtest_main  ${OpenCV_LIBS} VeniVidi)
 
 configure_file(test/data/lena.png ${CMAKE_CURRENT_BINARY_DIR}/lena.png COPYONLY)
 configure_file(test/data/lena-gray.png ${CMAKE_CURRENT_BINARY_DIR}/lena-gray.png COPYONLY)
+configure_file(test/data/lena-gray-full.png ${CMAKE_CURRENT_BINARY_DIR}/lena-gray-full.png COPYONLY)
+configure_file(test/data/lena-gray-scalled.png ${CMAKE_CURRENT_BINARY_DIR}/lena-gray-scalled.png COPYONLY)
+configure_file(test/data/lena-gray-120deg.png ${CMAKE_CURRENT_BINARY_DIR}/lena-gray-120deg.png COPYONLY)
 
 add_test( runUnitTests runUnitTests )
 
