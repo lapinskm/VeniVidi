@@ -1,5 +1,7 @@
-#include <stdio.h>
+#include <iostream>
+#include <thread>
 #include <gtest/gtest.h>
+
 #include "common.hpp"
 #include "FeaturePointMatcher.hpp"
 
@@ -22,10 +24,16 @@ class FeaturePointMatcherTest : public testing::Test
   // Otherwise, this can be skipped.
   virtual void SetUp()
   {
+     
      cout<<"[ SetUp    ]\n";
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
      callbackFinished=false;
+     testFinished=new bool(false);
+
+     timeoutThread= new thread(&timeoutThreadRoutine,this);
+     timeoutThread->detach();
+
      cout<<"[ Test body] \n";
   }
 
@@ -37,8 +45,14 @@ class FeaturePointMatcherTest : public testing::Test
   {
      cout<<"[ TearDown ]\n";
      delete fpm;
+     delete timeoutThread;
+     timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
+     if (!*testFinished)
+        *testFinished=true;
+     else
+        delete testFinished;
   }
 
   static void callback(void* result,void* userData)
@@ -72,6 +86,24 @@ class FeaturePointMatcherTest : public testing::Test
     empty_descr=Mat::zeros(1, 1, CV_32F);
   }
 
+  static void timeoutThreadRoutine(void* data)
+  {
+     
+    FeaturePointMatcherTest* owner;
+    owner = static_cast < FeaturePointMatcherTest* >(data);
+    bool * testFinished = owner -> testFinished;
+
+    sleep (owner->timeoutTime);
+    if ( !*testFinished )
+    {  
+       *testFinished = true;
+       FAIL();
+    }
+    else
+    {
+      delete testFinished;
+    }
+  }
 
   // Declares the variables your tests want to use.
 
@@ -82,6 +114,11 @@ class FeaturePointMatcherTest : public testing::Test
   Mat lena_scalled_descr;
 
   FeaturePointMatcher* fpm;
+
+  int timeoutTime = 1;
+  thread *  timeoutThread;
+  bool * testFinished;
+  
   bool callbackCalled;
   bool callbackFinished;
   std::vector< DMatch >* cbResult;
@@ -114,20 +151,25 @@ TEST_F(FeaturePointMatcherTest, nullParameters)
 //test if callback is called
 TEST_F(FeaturePointMatcherTest, callbackIsCalled)
 {
-  ASSERT_TRUE(fpm);
+  ASSERT_TRUE(fpm);           
   VVResultCode ret;
   ret=fpm->startMatching(&empty_descr, &empty_descr, callback, this);
   EXPECT_EQ(ret,vVSuccess);
-  cout<<"[          ] Matcher launched\n";
-  //FIXME: use some timeout mechanism instead of simple waiting
-  cout<<"[          ] waiting 2 sec for finish matching\n";
-  sleep(2);
-  EXPECT_TRUE(callbackCalled);
+  //if callback will be called before timeout finish with success
+  while (!callbackCalled);
+   
+  SUCCEED();
 }
 
 //check if result is not NULL
 TEST_F(FeaturePointMatcherTest, resultNotNull)
-{
+{  
+  ASSERT_TRUE(fpm);
+  VVResultCode ret;
+  ret=fpm->startMatching(&empty_descr, &empty_descr, callback, this);
+  EXPECT_EQ(ret,vVSuccess);
+  while (!callbackFinished);
+  EXPECT_TRUE(cbResult);
 }
 
 TEST_F(FeaturePointMatcherTest, lenaRotatedCase)
@@ -141,4 +183,5 @@ TEST_F(FeaturePointMatcherTest, lenaResizedCase)
 TEST_F(FeaturePointMatcherTest, lenaResizedRotatedCase)
 {
 }
+
 
