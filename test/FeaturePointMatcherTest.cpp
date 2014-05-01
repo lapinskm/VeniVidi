@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <gtest/gtest.h>
 
 #include "common.hpp"
@@ -7,24 +8,20 @@
 
 using namespace cv;
 
+mutex FinishTestMutex;
+
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointMatcherTest : public testing::Test
 {
  protected:  // You should make the members protected s.t. they can be
              // accessed from sub-classes.
 
-  //all setup work which can be don once.
-  FeaturePointMatcherTest()
-  {
-     initTestData();
-  }
-
   // virtual void SetUp() will be called before each test is run.  You
   // should define it if you need to initialize the varaibles.
   // Otherwise, this can be skipped.
   virtual void SetUp()
   {
-     
+     initTestData();
      cout<<"[ SetUp    ]\n";
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
@@ -43,16 +40,20 @@ class FeaturePointMatcherTest : public testing::Test
   //
   virtual void TearDown()
   {
+     FinishTestMutex.lock();
      cout<<"[ TearDown ]\n";
      delete fpm;
      delete timeoutThread;
      timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
+
      if (!*testFinished)
         *testFinished=true;
      else
         delete testFinished;
+
+    FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
@@ -80,22 +81,21 @@ class FeaturePointMatcherTest : public testing::Test
   void initTestData()
   {
     findDescriptors("lena-gray.png"        , & lena_descr);
-    findDescriptors("lena-gray-full.png"   , & lena_full_descr);
     findDescriptors("lena-gray-120deg.png" , & lena_120deg_descr);
-    findDescriptors("lena-gray-scalled.png", & lena_scalled_descr);
     empty_descr=Mat::zeros(1, 1, CV_32F);
   }
 
   static void timeoutThreadRoutine(void* data)
   {
-     
     FeaturePointMatcherTest* owner;
     owner = static_cast < FeaturePointMatcherTest* >(data);
     bool * testFinished = owner -> testFinished;
 
     sleep (owner->timeoutTime);
+    FinishTestMutex.lock();
+
     if ( !*testFinished )
-    {  
+    {
        *testFinished = true;
        FAIL();
     }
@@ -103,6 +103,7 @@ class FeaturePointMatcherTest : public testing::Test
     {
       delete testFinished;
     }
+    FinishTestMutex.unlock();
   }
 
   // Declares the variables your tests want to use.
@@ -118,7 +119,7 @@ class FeaturePointMatcherTest : public testing::Test
   int timeoutTime = 1;
   thread *  timeoutThread;
   bool * testFinished;
-  
+
   bool callbackCalled;
   bool callbackFinished;
   std::vector< DMatch >* cbResult;
@@ -151,19 +152,19 @@ TEST_F(FeaturePointMatcherTest, nullParameters)
 //test if callback is called
 TEST_F(FeaturePointMatcherTest, callbackIsCalled)
 {
-  ASSERT_TRUE(fpm);           
+  ASSERT_TRUE(fpm);
   VVResultCode ret;
   ret=fpm->startMatching(&empty_descr, &empty_descr, callback, this);
   EXPECT_EQ(ret,vVSuccess);
   //if callback will be called before timeout finish with success
   while (!callbackCalled);
-   
+
   SUCCEED();
 }
 
 //check if result is not NULL
 TEST_F(FeaturePointMatcherTest, resultNotNull)
-{  
+{
   ASSERT_TRUE(fpm);
   VVResultCode ret;
   ret=fpm->startMatching(&empty_descr, &empty_descr, callback, this);
@@ -183,5 +184,4 @@ TEST_F(FeaturePointMatcherTest, lenaResizedCase)
 TEST_F(FeaturePointMatcherTest, lenaResizedRotatedCase)
 {
 }
-
 
