@@ -34,8 +34,20 @@ VVResultCode FeaturePointMatcher::startMatching(Mat* descriptors1,
   {
     return vVWrongParams;
   }
+  //check if any of desciptors is empty
+  if ( descriptors1->empty() || descriptors2->empty() )
+  {
+    return vVFailure;
+  }
+  //check if descriptors are in right type. if not convert
+  if (CV_32F != descriptors1->type() )
+    descriptors1->convertTo(*descriptors1,CV_32F);
+
+  if(CV_32F != descriptors2->type() )
+     descriptors2->convertTo(*descriptors2,CV_32F);
+
   //set up routine data structure
-  struct threadRoutineData* data = new struct threadRoutineData ;
+  struct threadRoutineData* data = new struct threadRoutineData;
   data->descriptors1=descriptors1;
   data->descriptors2=descriptors2;
   data->cb=cb;

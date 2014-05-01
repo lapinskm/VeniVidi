@@ -21,8 +21,8 @@ class FeaturePointMatcherTest : public testing::Test
   // Otherwise, this can be skipped.
   virtual void SetUp()
   {
-     initTestData();
      cout<<"[ SetUp    ]\n";
+     initTestData();
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
      callbackFinished=false;
@@ -61,15 +61,18 @@ class FeaturePointMatcherTest : public testing::Test
      cout<<"[          ] InsideCallback\n";
      FeaturePointMatcherTest* owner;
      owner=static_cast<FeaturePointMatcherTest*>(userData);
-     owner->cbResult = static_cast<std::vector< DMatch >*>(result);
      owner->callbackCalled=true;
+
+     owner->cbResult = static_cast<std::vector< DMatch >*>(result);
+
      owner->callbackFinished=true;
   }
 
   void findDescriptors(const char* filename, Mat* descriptors)
   {
     Mat image;
-    Ptr<FeatureDetector>     detector=FeatureDetector::create("FAST");
+
+    Ptr<FeatureDetector>     detector=FeatureDetector::create("ORB");
     Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create("FREAK");
     vector<KeyPoint> keypoints;
 
@@ -173,15 +176,31 @@ TEST_F(FeaturePointMatcherTest, resultNotNull)
   EXPECT_TRUE(cbResult);
 }
 
-TEST_F(FeaturePointMatcherTest, lenaRotatedCase)
+TEST_F(FeaturePointMatcherTest, sameDescriptors)
 {
+  ASSERT_TRUE(fpm);
+  VVResultCode ret;
+  ret=fpm->startMatching(&lena_descr, &lena_descr, callback, this);
+  EXPECT_EQ(ret,vVSuccess);
+  while (!callbackFinished);
+  //faill when null
+  ASSERT_TRUE(cbResult);
+  cout<<"[ result   ] size is "<<cbResult->size()<<"\n";
+  //amount of matches should be the same as descriptors
+  EXPECT_EQ(lena_descr.size().height ,cbResult->size());
 }
 
-TEST_F(FeaturePointMatcherTest, lenaResizedCase)
+TEST_F(FeaturePointMatcherTest, 120Rot)
 {
-}
-
-TEST_F(FeaturePointMatcherTest, lenaResizedRotatedCase)
-{
+   ASSERT_TRUE(fpm);
+   VVResultCode ret;
+   ret=fpm->startMatching(&lena_descr, &lena_120deg_descr, callback, this);
+   EXPECT_EQ(ret,vVSuccess);
+   while (!callbackFinished);
+   //faill when null
+   ASSERT_TRUE(cbResult);
+   cout<<"[ result   ] size is "<<cbResult->size()<<"\n";
+   //amount of matches should be the same as descriptors
+   EXPECT_TRUE( 10 <= cbResult->size() );
 }
 
