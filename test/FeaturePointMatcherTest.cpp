@@ -8,7 +8,7 @@
 
 using namespace cv;
 
-mutex FinishTestMutex;
+static mutex FinishTestMutex;
 
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointMatcherTest : public testing::Test
@@ -26,8 +26,8 @@ class FeaturePointMatcherTest : public testing::Test
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
      callbackFinished=false;
-     testFinished=new bool(false);
 
+     testFinished=new bool(false);
      timeoutThread= new thread(&timeoutThreadRoutine,this);
      timeoutThread->detach();
 
@@ -201,6 +201,6 @@ TEST_F(FeaturePointMatcherTest, 120Rot)
    ASSERT_TRUE(cbResult);
    cout<<"[ result   ] size is "<<cbResult->size()<<"\n";
    //amount of matches should be the same as descriptors
-   EXPECT_TRUE( 10 <= cbResult->size() );
+   EXPECT_GT( cbResult->size(), 10);
 }
 

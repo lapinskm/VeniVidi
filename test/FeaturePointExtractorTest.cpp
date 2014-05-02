@@ -1,10 +1,15 @@
-#include <stdio.h>
+#include <iostream>
+#include <thread>
+#include <mutex>
 #include <gtest/gtest.h>
+
 #include "common.hpp"
 #include "FeaturePointExtractor.hpp"
 #include "ImageFeaturePoints.hpp"
 
 using namespace cv;
+
+static mutex FinishTestMutex;
 
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointExtractorTest : public testing::Test
@@ -22,6 +27,11 @@ class FeaturePointExtractorTest : public testing::Test
      fpe=new FeaturePointExtractor();
      callbackCalled=false;
      callbackFinished=false;
+
+     testFinished=new bool(false);
+     timeoutThread= new thread(&timeoutThreadRoutine,this);
+     timeoutThread->detach();
+
      cout<<"[ Test body] \n";
   }
 
@@ -31,10 +41,21 @@ class FeaturePointExtractorTest : public testing::Test
   //
   virtual void TearDown()
   {
+     FinishTestMutex.lock();
      cout<<"[ TearDown ]\n";
      image.release();
      delete fpe;
+     delete timeoutThread;
+     timeoutThread=NULL;
      callbackCalled=false;
+     callbackFinished=false;
+
+     if (!*testFinished)
+       *testFinished=true;
+     else
+       delete testFinished;
+
+     FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
@@ -42,24 +63,49 @@ class FeaturePointExtractorTest : public testing::Test
      cout<<"[          ] InsideCallback\n";
      FeaturePointExtractorTest* owner;
      owner=static_cast<FeaturePointExtractorTest*>(userData);
-     owner->cbResult = static_cast<ImageFeaturePoints*>(result);
      owner->callbackCalled=true;
+
+     owner->cbResult = static_cast<ImageFeaturePoints*>(result);
+
      owner->callbackFinished=true;
+  }
+
+  static void timeoutThreadRoutine(void* data)
+  {
+    FeaturePointExtractorTest* owner;
+    owner = static_cast < FeaturePointExtractorTest* >(data);
+    bool * testFinished = owner -> testFinished;
+
+    sleep (owner->timeoutTime);
+    FinishTestMutex.lock();
+
+    if ( !*testFinished )
+    {
+       *testFinished = true;
+       FAIL();
+    }
+    else
+    {
+      delete testFinished;
+    }
+    FinishTestMutex.unlock();
   }
 
   // Declares the variables your tests want to use.
   Mat image;
   FeaturePointExtractor* fpe;
+
+  int timeoutTime = 1;
+  thread *  timeoutThread;
+  bool * testFinished;
+
   bool callbackCalled;
   bool callbackFinished;
   ImageFeaturePoints* cbResult;
-  //int foo;
-  //int bar;
 };
 
-// When you have a test fixture, you define a test using TEST_F
-// instead of TEST.
 
+/**************************TESTS SECTION***************************/
 // Tests the default c'tor.
 TEST_F(FeaturePointExtractorTest, defaultConstructor)
 {
@@ -87,12 +133,10 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
    VVResultCode ret;
    ret=fpe->startExtraction(&image, callback, this);
    EXPECT_EQ(ret, vVSuccess);
-   cout<<"[          ] Extractor launched\n";
-   /*FIXME: Find more realible method than waiting some amount
-   of time before checking if callback was called*/
-   cout<<"[          ] waiting 2 sec for finish extraction\n";
-   sleep(2);
-   EXPECT_TRUE(callbackCalled);
+
+   //if callback will be called before timeout finish with success
+   while(!callbackCalled);
+   SUCCEED();
 }
 
 //check if result is not NULL
@@ -106,6 +150,7 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
     ASSERT_TRUE(cbResult);
 }
 
+//test if blank image gives no features
 TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
     VVResultCode ret;
