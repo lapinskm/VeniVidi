@@ -73,7 +73,7 @@ class FeaturePointMatcherTest : public testing::Test
     Mat image;
 
     Ptr<FeatureDetector>     detector=FeatureDetector::create("ORB");
-    Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create("FREAK");
+    Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create("ORB");
     vector<KeyPoint> keypoints;
 
     image = imread( filename, 1 );
