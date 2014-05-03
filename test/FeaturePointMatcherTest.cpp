@@ -1,70 +1,28 @@
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <gtest/gtest.h>
-
 #include "common.hpp"
+#include "VVTestBase.hpp"
 #include "FeaturePointMatcher.hpp"
+
 
 using namespace cv;
 
-static mutex FinishTestMutex;
-static const int timeoutTime = 3; //value in seconds
-
-// To use a test fixture, derive a class from testing::Test.
-class FeaturePointMatcherTest : public testing::Test
+/*************************FIXTURE SECTION**************************/
+class FeaturePointMatcherTest : public VVTestBase
 {
- protected:  // You should make the members protected s.t. they can be
-             // accessed from sub-classes.
+ protected:
 
-  // virtual void SetUp() will be called before each test is run.  You
-  // should define it if you need to initialize the varaibles.
-  // Otherwise, this can be skipped.
-  virtual void SetUp()
+  virtual void postSetUp()
   {
-     VVLOG("[ SetUp    ]\n");
-     FinishTestMutex.lock();
      initTestData();
-     FinishTestMutex.unlock();
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
      callbackFinished=false;
-
-     testFinishedLFlag=new bool(false);
-     timeoutThread= new thread(&timeoutThreadRoutine,testFinishedLFlag);
-     timeoutThread->detach();
-
-     VVLOG("[ Test body] \n");
   }
 
-  // virtual void TearDown() will be called after each test is run.
-  // You should define it if there is cleanup work to do.  Otherwise,
-  // you don't have to provide it.
-  //
-  virtual void TearDown()
+  virtual void preTearDown()
   {
-     FinishTestMutex.lock();
-     VVLOG("[ TearDown ]\n");
      delete fpm;
-     delete timeoutThread;
-     timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
-
-     //if not testFinished timeout not happened
-     if (!*testFinishedLFlag)
-     {
-        //we need set it true for timeout to know test finished
-        *testFinishedLFlag=true;
-     }
-     //else if finished that mean timeout was already been
-     else
-     {
-       //and you can delete this part without worring abut timeout
-       delete testFinishedLFlag;
-     }
-
-    FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
@@ -99,31 +57,6 @@ class FeaturePointMatcherTest : public testing::Test
     empty_descr=Mat::zeros(1, 1, CV_32F);
   }
 
-  static void timeoutThreadRoutine(bool *testFinishedLFlag)
-  {
-    VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
-
-    sleep (timeoutTime);
-    FinishTestMutex.lock();
-
-    //if not testFinishedLFlag tearDown not happened
-    if ( !*testFinishedLFlag )
-    {
-       //so we set it true and call FAIL to start tearDown
-       VVLOG("[ TIMEOUT  ] Time is over\n");
-       *testFinishedLFlag = true;
-       FinishTestMutex.unlock();
-       FAIL();
-    }
-    //if tearDown happened already we can delete this variable
-    else
-    {
-      delete testFinishedLFlag;
-      FinishTestMutex.unlock();
-    }
-  }
-
-  // Declares the variables your tests want to use.
 
   Mat empty_descr;
   Mat lena_descr;
@@ -132,10 +65,6 @@ class FeaturePointMatcherTest : public testing::Test
   Mat lena_scalled_descr;
 
   FeaturePointMatcher* fpm;
-
-  thread *  timeoutThread;
-
-  bool * testFinishedLFlag;
 
   bool callbackCalled;
   bool callbackFinished;

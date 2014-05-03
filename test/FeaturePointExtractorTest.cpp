@@ -1,70 +1,29 @@
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <gtest/gtest.h>
-
 #include "common.hpp"
+#include "VVTestBase.hpp"
 #include "FeaturePointExtractor.hpp"
 #include "ImageFeaturePoints.hpp"
 
 using namespace cv;
 
-static mutex FinishTestMutex;
-static const int timeoutTime = 3; //value in seconds
-
-// To use a test fixture, derive a class from testing::Test.
-class FeaturePointExtractorTest : public testing::Test
+/*************************FIXTURE SECTION**************************/
+class FeaturePointExtractorTest : public VVTestBase
 {
- protected:  // You should make the members protected s.t. they can be
-             // accessed from sub-classes.
+ protected:
 
-  // virtual void SetUp() will be called before each test is run.  You
-  // should define it if you need to initialize the varaibles.
-  // Otherwise, this can be skipped.
-  virtual void SetUp()
+  virtual void postSetUp()
   {
-     VVLOG("[ SetUp    ]\n");
-     FinishTestMutex.lock();
      image = Mat::zeros(Size(100,100), CV_8U);
-     FinishTestMutex.unlock();
      fpe=new FeaturePointExtractor();
      callbackCalled=false;
      callbackFinished=false;
-
-     testFinishedFlag=new bool(false);
-     timeoutThread= new thread(&timeoutThreadRoutine,testFinishedFlag);
-     timeoutThread->detach();
-
-     VVLOG("[ Test body] \n");
   }
 
-  // virtual void TearDown() will be called after each test is run.
-  // You should define it if there is cleanup work to do.  Otherwise,
-  // you don't have to provide it.
-  //
-  virtual void TearDown()
+  virtual void preTearDown()
   {
-     FinishTestMutex.lock();
-     VVLOG("[ TearDown ]\n");
      image.release();
      delete fpe;
-     delete timeoutThread;
-     timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
-     //if not testFinishedFlag timeout not happened
-     if (!*testFinishedFlag)
-     {
-        //we need set it true for timeout to know test finished
-       *testFinishedFlag=true;
-     }
-     //else if finished that mean timeout was already been
-     else
-     {
-       //and you can delete this part without worring abut timeout
-       delete testFinishedFlag;
-     }
-     FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
@@ -79,36 +38,8 @@ class FeaturePointExtractorTest : public testing::Test
      owner->callbackFinished=true;
   }
 
-  static void timeoutThreadRoutine(bool * testFinishedFlag)
-  {
-    VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
-    sleep (timeoutTime);
-    FinishTestMutex.lock();
-
-    //if not testFinishedFlag tearDown not happened
-    if ( !*testFinishedFlag )
-    {
-       //so we set it true and call FAIL to start tearDown
-       VVLOG("[ TIMEOUT  ] Time is over\n");
-       *testFinishedFlag = true;
-       FinishTestMutex.unlock();
-       FAIL();
-    }
-    //if tearDown happened already we can delete this variable
-    else
-    {
-      delete testFinishedFlag;
-      FinishTestMutex.unlock();
-    }
-  }
-
-  // Declares the variables your tests want to use.
   Mat image;
   FeaturePointExtractor* fpe;
-
-  thread *  timeoutThread;
-  bool * testFinishedFlag;
-
   bool callbackCalled;
   bool callbackFinished;
   ImageFeaturePoints* cbResult;

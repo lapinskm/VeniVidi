@@ -23,7 +23,7 @@ target_link_libraries(VeniVidiVici VeniVidi)
 add_subdirectory(gtest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-
+include_directories(test)
 file(GLOB TEST_SOURCE test/*.cpp) 
 
 add_executable( runUnitTests ${TEST_SOURCE} )
