@@ -10,6 +10,7 @@
 using namespace cv;
 
 static mutex FinishTestMutex;
+static const int timeoutTime = 3; //value in seconds
 
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointExtractorTest : public testing::Test
@@ -22,17 +23,19 @@ class FeaturePointExtractorTest : public testing::Test
   // Otherwise, this can be skipped.
   virtual void SetUp()
   {
-     cout<<"[ SetUp    ]\n";
+     VVLOG("[ SetUp    ]\n");
+     FinishTestMutex.lock();
      image = Mat::zeros(Size(100,100), CV_8U);
+     FinishTestMutex.unlock();
      fpe=new FeaturePointExtractor();
      callbackCalled=false;
      callbackFinished=false;
 
-     testFinished=new bool(false);
-     timeoutThread= new thread(&timeoutThreadRoutine,this);
+     testFinishedFlag=new bool(false);
+     timeoutThread= new thread(&timeoutThreadRoutine,testFinishedFlag);
      timeoutThread->detach();
 
-     cout<<"[ Test body] \n";
+     VVLOG("[ Test body] \n");
   }
 
   // virtual void TearDown() will be called after each test is run.
@@ -42,62 +45,69 @@ class FeaturePointExtractorTest : public testing::Test
   virtual void TearDown()
   {
      FinishTestMutex.lock();
-     cout<<"[ TearDown ]\n";
+     VVLOG("[ TearDown ]\n");
      image.release();
      delete fpe;
      delete timeoutThread;
      timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
-
-     if (!*testFinished)
-       *testFinished=true;
+     //if not testFinishedFlag timeout not happened
+     if (!*testFinishedFlag)
+     {
+        //we need set it true for timeout to know test finished
+       *testFinishedFlag=true;
+     }
+     //else if finished that mean timeout was already been
      else
-       delete testFinished;
-
+     {
+       //and you can delete this part without worring abut timeout
+       delete testFinishedFlag;
+     }
      FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
   {
-     cout<<"[          ] InsideCallback\n";
+     VVLOG("[ Callback ] Start\n");
      FeaturePointExtractorTest* owner;
      owner=static_cast<FeaturePointExtractorTest*>(userData);
      owner->callbackCalled=true;
-
      owner->cbResult = static_cast<ImageFeaturePoints*>(result);
 
+     VVLOG("[ Callback ] Finish\n");
      owner->callbackFinished=true;
   }
 
-  static void timeoutThreadRoutine(void* data)
+  static void timeoutThreadRoutine(bool * testFinishedFlag)
   {
-    FeaturePointExtractorTest* owner;
-    owner = static_cast < FeaturePointExtractorTest* >(data);
-    bool * testFinished = owner -> testFinished;
-
-    sleep (owner->timeoutTime);
+    VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
+    sleep (timeoutTime);
     FinishTestMutex.lock();
 
-    if ( !*testFinished )
+    //if not testFinishedFlag tearDown not happened
+    if ( !*testFinishedFlag )
     {
-       *testFinished = true;
+       //so we set it true and call FAIL to start tearDown
+       VVLOG("[ TIMEOUT  ] Time is over\n");
+       *testFinishedFlag = true;
+       FinishTestMutex.unlock();
        FAIL();
     }
+    //if tearDown happened already we can delete this variable
     else
     {
-      delete testFinished;
+      delete testFinishedFlag;
+      FinishTestMutex.unlock();
     }
-    FinishTestMutex.unlock();
   }
 
   // Declares the variables your tests want to use.
   Mat image;
   FeaturePointExtractor* fpe;
 
-  int timeoutTime = 1;
   thread *  timeoutThread;
-  bool * testFinished;
+  bool * testFinishedFlag;
 
   bool callbackCalled;
   bool callbackFinished;
@@ -122,7 +132,7 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
    EXPECT_EQ(ret,vVWrongParams);
    ret=fpe->startExtraction(NULL, NULL, this);
    EXPECT_EQ(ret,vVWrongParams);
-   cout<<"[          ] app finished without crash\n";
+   VVLOG("[          ] app finished without crash\n");
 }
 
 //test if callback is called
@@ -145,8 +155,8 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
     VVResultCode ret;
     ret=fpe->startExtraction(&image, callback, this);
     EXPECT_EQ(ret, vVSuccess);
-    cout<<"[          ] Extractor launched\n";
-    while(!callbackCalled);
+    VVLOG("[          ] Extractor launched\n");
+    while(!callbackFinished);
     ASSERT_TRUE(cbResult);
 }
 
@@ -155,16 +165,16 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
     VVResultCode ret;
     ret=fpe->startExtraction(&image, callback, this);
-    cout<<"[          ] Extractor launched\n";
+    VVLOG("[          ] Extractor launched\n");
     EXPECT_EQ(ret, vVSuccess);
-    while(!callbackCalled);
+    while(!callbackFinished);
     //check if result is not NULL
     ASSERT_TRUE(cbResult);
     unsigned keypointCount;
     unsigned descriptorCount;
     keypointCount=cbResult->keypoints.size();
     descriptorCount=cbResult->descriptors.size().height;
-    cout<<"[          ] Check if blank image gives no features\n";
+    VVLOG("[          ] Check if blank image gives no features\n");
     EXPECT_EQ(keypointCount,0);
     EXPECT_EQ(descriptorCount,0);
 }
@@ -177,8 +187,8 @@ TEST_F(FeaturePointExtractorTest, lenaImageCase)
     VVResultCode ret;
     ret=fpe->startExtraction(&image, callback, this);
     EXPECT_EQ(ret, vVSuccess);
-    cout<<"[          ] Extractor launched\n";
-    while(!callbackCalled);
+    VVLOG("[          ] Extractor launched\n");
+    while(!callbackFinished);
     //check if result is not NULL
     ASSERT_TRUE(cbResult);
 
@@ -186,7 +196,7 @@ TEST_F(FeaturePointExtractorTest, lenaImageCase)
     unsigned descriptorCount;
     keypointCount=cbResult->keypoints.size();
     descriptorCount=cbResult->descriptors.size().height;
-    cout<<"[          ] Check if lena image gives some features\n";
+    VVLOG("[          ] Check if lena image gives some features\n");
     EXPECT_GT(keypointCount,10);
     EXPECT_GT(descriptorCount,10);
     EXPECT_EQ(descriptorCount,keypointCount);

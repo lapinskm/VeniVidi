@@ -9,6 +9,7 @@
 using namespace cv;
 
 static mutex FinishTestMutex;
+static const int timeoutTime = 3; //value in seconds
 
 // To use a test fixture, derive a class from testing::Test.
 class FeaturePointMatcherTest : public testing::Test
@@ -21,17 +22,19 @@ class FeaturePointMatcherTest : public testing::Test
   // Otherwise, this can be skipped.
   virtual void SetUp()
   {
-     cout<<"[ SetUp    ]\n";
+     VVLOG("[ SetUp    ]\n");
+     FinishTestMutex.lock();
      initTestData();
+     FinishTestMutex.unlock();
      fpm=new FeaturePointMatcher();
      callbackCalled=false;
      callbackFinished=false;
 
-     testFinished=new bool(false);
-     timeoutThread= new thread(&timeoutThreadRoutine,this);
+     testFinishedLFlag=new bool(false);
+     timeoutThread= new thread(&timeoutThreadRoutine,testFinishedLFlag);
      timeoutThread->detach();
 
-     cout<<"[ Test body] \n";
+     VVLOG("[ Test body] \n");
   }
 
   // virtual void TearDown() will be called after each test is run.
@@ -41,30 +44,38 @@ class FeaturePointMatcherTest : public testing::Test
   virtual void TearDown()
   {
      FinishTestMutex.lock();
-     cout<<"[ TearDown ]\n";
+     VVLOG("[ TearDown ]\n");
      delete fpm;
      delete timeoutThread;
      timeoutThread=NULL;
      callbackCalled=false;
      callbackFinished=false;
 
-     if (!*testFinished)
-        *testFinished=true;
+     //if not testFinished timeout not happened
+     if (!*testFinishedLFlag)
+     {
+        //we need set it true for timeout to know test finished
+        *testFinishedLFlag=true;
+     }
+     //else if finished that mean timeout was already been
      else
-        delete testFinished;
+     {
+       //and you can delete this part without worring abut timeout
+       delete testFinishedLFlag;
+     }
 
     FinishTestMutex.unlock();
   }
 
   static void callback(void* result,void* userData)
   {
-     cout<<"[          ] InsideCallback\n";
+     VVLOG("[ Callback ] Start\n");
      FeaturePointMatcherTest* owner;
      owner=static_cast<FeaturePointMatcherTest*>(userData);
      owner->callbackCalled=true;
-
      owner->cbResult = static_cast<std::vector< DMatch >*>(result);
 
+     VVLOG("[ Callback ] Finish\n");
      owner->callbackFinished=true;
   }
 
@@ -88,25 +99,28 @@ class FeaturePointMatcherTest : public testing::Test
     empty_descr=Mat::zeros(1, 1, CV_32F);
   }
 
-  static void timeoutThreadRoutine(void* data)
+  static void timeoutThreadRoutine(bool *testFinishedLFlag)
   {
-    FeaturePointMatcherTest* owner;
-    owner = static_cast < FeaturePointMatcherTest* >(data);
-    bool * testFinished = owner -> testFinished;
+    VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
 
-    sleep (owner->timeoutTime);
+    sleep (timeoutTime);
     FinishTestMutex.lock();
 
-    if ( !*testFinished )
+    //if not testFinishedLFlag tearDown not happened
+    if ( !*testFinishedLFlag )
     {
-       *testFinished = true;
+       //so we set it true and call FAIL to start tearDown
+       VVLOG("[ TIMEOUT  ] Time is over\n");
+       *testFinishedLFlag = true;
+       FinishTestMutex.unlock();
        FAIL();
     }
+    //if tearDown happened already we can delete this variable
     else
     {
-      delete testFinished;
+      delete testFinishedLFlag;
+      FinishTestMutex.unlock();
     }
-    FinishTestMutex.unlock();
   }
 
   // Declares the variables your tests want to use.
@@ -119,9 +133,9 @@ class FeaturePointMatcherTest : public testing::Test
 
   FeaturePointMatcher* fpm;
 
-  int timeoutTime = 1;
   thread *  timeoutThread;
-  bool * testFinished;
+
+  bool * testFinishedLFlag;
 
   bool callbackCalled;
   bool callbackFinished;
@@ -185,7 +199,7 @@ TEST_F(FeaturePointMatcherTest, sameDescriptors)
   while (!callbackFinished);
   //faill when null
   ASSERT_TRUE(cbResult);
-  cout<<"[ result   ] size is "<<cbResult->size()<<"\n";
+  VVLOG("[ result   ] result size is %ld\n",cbResult->size());
   //amount of matches should be the same as descriptors
   EXPECT_EQ(lena_descr.size().height ,cbResult->size());
 }
@@ -199,7 +213,7 @@ TEST_F(FeaturePointMatcherTest, 120Rot)
    while (!callbackFinished);
    //faill when null
    ASSERT_TRUE(cbResult);
-   cout<<"[ result   ] size is "<<cbResult->size()<<"\n";
+   VVLOG("[ result   ] result size is %ld\n",cbResult->size());
    //amount of matches should be the same as descriptors
    EXPECT_GT( cbResult->size(), 10);
 }
