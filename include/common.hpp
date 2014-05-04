@@ -20,4 +20,13 @@ typedef enum
 }
 VVResultCode;
 
+#include <opencv2/opencv.hpp>
+
+typedef struct
+{
+  cv::Mat distCoeffs;
+  cv::Mat cameraMatrix;
+} CalibData;
+
+
 #endif /*VV_COMMON_H*/
