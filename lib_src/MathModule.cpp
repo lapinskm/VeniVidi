@@ -23,6 +23,18 @@ void MathModule::orthogonalize(Mat& M, unsigned startIndex)
   */ 
 inline Mat MathModule::vectorProjection(const Mat& a, const Mat& b)
 {
-   Mat bNormal = b / norm(b);
-   return ((a.dot(bNormal))) * bNormal;
+  Mat bNormal = b / norm(b);
+  return ((a.dot(bNormal))) * bNormal;
 }
+
+/** Sollution of the problem:
+    Minimize ||Ax|| subject to ||x||=1
+  */
+Mat MathModule::yellowAlgorithm(const Mat& A)
+{
+  Mat U,S,VT,V;
+  SVD::compute(A,U,S,VT, SVD::FULL_UV);
+  V = VT.t();
+  return V.colRange(VT.rows - 1, VT.rows);
+}
+

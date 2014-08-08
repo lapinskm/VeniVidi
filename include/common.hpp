@@ -7,6 +7,7 @@ extern std::mutex VVLogMtx;
 #define VVLOG(format, ...)\
  VVLogMtx.lock(); fprintf (stderr, format, ## __VA_ARGS__); VVLogMtx.unlock()
 
+#define VVEpsilon 1e-8
 /******************Types declarations****************/
 
 typedef void (*finishCallback)(void* inputData,void* outputData);
