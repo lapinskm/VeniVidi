@@ -61,7 +61,7 @@ TEST_F(MathModuleTest, vectorProjection)
    EXPECT_EQ(0, V3.at<double>(1, 0));
 }
 
-TEST_F(MathModuleTest, orthogonalize)
+TEST_F(MathModuleTest, orthogonalize_SimpleCase)
 {
   Mat M=Mat(2, 2, numericDataType);
   M.at<double>(0, 0) = 1;
@@ -75,6 +75,19 @@ TEST_F(MathModuleTest, orthogonalize)
   EXPECT_EQ(0, M.at<double>(0, 1));
   EXPECT_EQ(1, M.at<double>(1, 1));
 }
+
+TEST_F(MathModuleTest, orthogonalize_RandomCase)
+{
+  Mat M=Mat(5, 5, numericDataType);
+  randu(M, Scalar(-1000), Scalar(1000));
+  VV_PRINT_MAT(M*M.t());
+  VV_PRINT_MAT(Mat::eye(M.cols, M.rows, numericDataType));
+
+  EXPECT_TRUE(matsEqual (M*M.t(),
+                         Mat::eye(M.cols, M.rows, numericDataType),
+                         VVEpsilon));
+}
+
 
 /** check if algorithm keeps ||X|| = 1 constraint
  */
