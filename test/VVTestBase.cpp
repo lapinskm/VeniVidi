@@ -1,10 +1,10 @@
 #include <mutex>
-
 #include "common.hpp"
 #include "VVTestBase.hpp"
 
 using std::thread;
 using std::mutex;
+using cv::Mat;
 
 static mutex FinishTestMutex;
 static const int timeoutTime = 1;
@@ -16,6 +16,7 @@ void VVTestBase::SetUp()
    //launch timeout thread
    timeoutThread= new thread(&timeoutThreadRoutine,testFinishedLFlag);
    timeoutThread->detach();
+   VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
 
    VVLOG("[ postSetUp] \n");
    postSetUp();
@@ -51,8 +52,6 @@ void VVTestBase::TearDown()
 
 void VVTestBase::timeoutThreadRoutine(bool *testFinishedLFlag)
 {
-  VVLOG("[ TIMEOUT  ] Timer started. %ds remainig.\n",timeoutTime);
-
   sleep (timeoutTime);
   FinishTestMutex.lock();
 
@@ -65,7 +64,7 @@ void VVTestBase::timeoutThreadRoutine(bool *testFinishedLFlag)
      FinishTestMutex.unlock();
      FAIL();
   }
-  //if tearDown happened already 
+  //if tearDown happened already
   else
   {
     //we should delete this variable
@@ -74,3 +73,22 @@ void VVTestBase::timeoutThreadRoutine(bool *testFinishedLFlag)
   }
 }
 
+bool VVTestBase::matsEqual(Mat mat1, Mat mat2, double epsilon)
+{
+  if ( mat1.cols != mat2.cols || mat1.rows != mat2.rows)
+  {
+    return false;
+  }
+  Mat diff=abs(mat1-mat2);
+  for (int i=0; i<diff.cols; i++)
+  {
+    for (int j=0; j<diff.rows; j++)
+    {
+      if (diff.at<double>(i,j)>epsilon)
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
