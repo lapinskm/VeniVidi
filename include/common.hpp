@@ -1,15 +1,25 @@
 #ifndef VV_COMMON_H
 #define VV_COMMON_H
 
-//thread-safe logging macro
+#include <opencv2/opencv.hpp>
 #include <mutex>
-extern std::mutex VVLogMtx;
+
+/***********************Macros**********************/
+//thread-safe logging macros
 #define VVLOG(format, ...)\
  VVLogMtx.lock(); fprintf (stderr, format, ## __VA_ARGS__); VVLogMtx.unlock()
 
-#define VVEpsilon 1e-8
-/******************Types declarations****************/
+#define VV_PRINT_MAT(mat)\
+ VVLogMtx.lock(); printf("%s = \n",#mat); displayMatrix(mat); VVLogMtx.unlock()
 
+//common opencv numeric calculation data type
+#define numericDataType CV_64FC1
+#define VVEpsilon 1.0e-8
+
+/************Global variables declarations***********/
+extern std::mutex VVLogMtx;
+
+/******************Types declarations****************/
 typedef void (*finishCallback)(void* inputData,void* outputData);
 
 typedef enum
@@ -21,13 +31,13 @@ typedef enum
 }
 VVResultCode;
 
-#include <opencv2/opencv.hpp>
-
 typedef struct
 {
   cv::Mat distCoeffs;
   cv::Mat cameraMatrix;
 } CalibData;
 
+/***************Function Declarations****************/
+void displayMatrix(cv::Mat);
 
 #endif /*VV_COMMON_H*/
