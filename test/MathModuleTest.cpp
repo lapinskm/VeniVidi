@@ -25,13 +25,13 @@ class MathModuleTest : public VVTestBase
                          -31,  17,   1,   5,
                           11,   3,   9,  -2};
 
-    M = Mat(6 ,4 ,numericDataType, Mdata);
+    M = Mat(6 ,4, numericDataType, Mdata);
     M.copyTo(MFull);
-    MPart = MFull.colRange(0,3);
+    MPart = MFull.colRange(0, 3);
 
-    C = MFull.colRange(3,4);
+    C = MFull.colRange(3, 4);
 
-    SVD::compute(MPart,S,U,V,SVD::FULL_UV);
+    SVD::compute(MPart, S, U, V, SVD::FULL_UV);
 
     V = V.t();
     S = Mat::diag(S);
@@ -40,7 +40,7 @@ class MathModuleTest : public VVTestBase
     S.copyTo(tmp(Rect(0, 0, S.cols, S.rows)));
     S=tmp;
   }
-  Mat V,S,U,C,MFull,MPart,M;
+  Mat V, S, U, C, MFull, MPart, M;
 };
 
 /**************************TESTS SECTION***************************/
@@ -48,13 +48,13 @@ class MathModuleTest : public VVTestBase
 
 TEST_F(MathModuleTest, vectorProjection)
 {
-   Mat V1 = Mat(2, 1, CV_64FC1);
-   V1.at<double>(0, 0)=1;
-   V1.at<double>(1, 0)=0;
+   Mat V1 = Mat(2, 1, numericDataType);
+   V1.at<double>(0, 0) = 1;
+   V1.at<double>(1, 0) = 0;
 
-   Mat V2 = Mat(2, 1, CV_64FC1);
-   V2.at<double>(0, 0)=2;
-   V2.at<double>(1, 0)=1;
+   Mat V2 = Mat(2, 1, numericDataType);
+   V2.at<double>(0, 0) = 2;
+   V2.at<double>(1, 0) = 1;
 
    Mat V3=MathModule::vectorProjection(V2,V1);
    EXPECT_EQ(2, V3.at<double>(0, 0));
@@ -63,11 +63,11 @@ TEST_F(MathModuleTest, vectorProjection)
 
 TEST_F(MathModuleTest, orthogonalize)
 {
-  Mat M=Mat(2, 2, CV_64FC1);
-  M.at<double>(0, 0)=1;
-  M.at<double>(1, 0)=0;
-  M.at<double>(0, 1)=2;
-  M.at<double>(1, 1)=1;
+  Mat M=Mat(2, 2, numericDataType);
+  M.at<double>(0, 0) = 1;
+  M.at<double>(1, 0) = 0;
+  M.at<double>(0, 1) = 2;
+  M.at<double>(1, 1) = 1;
 
   MathModule::orthogonalize(M);
   EXPECT_EQ(1, M.at<double>(0, 0));
@@ -80,7 +80,7 @@ TEST_F(MathModuleTest, orthogonalize)
  */
 TEST_F(MathModuleTest, yellowAlgorithmResultNormIsOne)
 {
-  Mat A(10, 10,CV_64FC1);
+  Mat A(10, 10, numericDataType);
   randu(A, Scalar(-100), Scalar(100));
   EXPECT_GE(VVEpsilon, 1 - norm(MathModule::yellowAlgorithm(A)));
 }
@@ -90,15 +90,15 @@ TEST_F(MathModuleTest, yellowAlgorithmResultNormIsOne)
  */
 TEST_F(MathModuleTest, yellowAlgorithmResultIsMinimal)
 {
-  Mat A = Mat::eye(2, 2, CV_64FC1);
+  Mat A = Mat::eye(2, 2, numericDataType);
   A.at<double>(0, 1) = 1;
   A.at<double>(1, 1) = 2;
   Mat X = MathModule::yellowAlgorithm(A);
 
-  Mat AX=A*X;
-  double x1=X.at<double>(0);
-  double x2=X.at<double>(1);
-  
+  Mat AX = A * X;
+  double x1 = X.at<double>(0);
+  double x2 = X.at<double>(1);
+
   EXPECT_NE(copysign(1.0, x1), copysign(1.0, x2));
   EXPECT_GE(VVEpsilon, abs(abs(x1)  - 0.9732489894677301637880577480));
   EXPECT_GE(VVEpsilon, abs(abs(x2)  - 0.2297529205473611835239373694));
@@ -152,18 +152,18 @@ TEST_F(MathModuleTest, updateSVD_C_S_mismatch )
 TEST_F(MathModuleTest, updateSVD_is_decomposition)
 {
   VVLOG("[ Test Body] MathModule::updateSVD()\n");
-  ASSERT_TRUE(MathModule::updateSVD(U,S,V,C));
+  ASSERT_TRUE(MathModule::updateSVD(U, S, V, C));
   //TODO: remove diagonal matrix composing after
   // adding it to the algorithm
-  Mat S_full=Mat::zeros(6,4,numericDataType);
-  Mat::diag(S).copyTo(S_full(Rect(0,0,4,4)));
-  Mat MFullReconstructed = U * S_full*V.t();
+  Mat S_full=Mat::zeros(6, 4, numericDataType);
+  Mat::diag(S).copyTo(S_full(Rect(0, 0, 4, 4)));
+  Mat MFullReconstructed = U * S_full * V.t();
 
   VVLOG("Folowing matrices should be equal:\n");
   VV_PRINT_MAT(MFull);
   VV_PRINT_MAT(MFullReconstructed);
 
-  EXPECT_TRUE(matsEqual(MFullReconstructed, MFull,VVEpsilon));
+  EXPECT_TRUE(matsEqual(MFullReconstructed, MFull, VVEpsilon));
 
 }
 
@@ -178,9 +178,9 @@ TEST_F(MathModuleTest, updateSVD_U_stay_orthogonal )
                       VVEpsilon));
 
   VVLOG("[ Test Body] MathModule::updateSVD()\n");
-  ASSERT_TRUE(MathModule::updateSVD(U,S,V,C));
+  ASSERT_TRUE(MathModule::updateSVD(U, S, V, C));
 
-  EXPECT_TRUE(matsEqual(U*U.t(),
+  EXPECT_TRUE(matsEqual(U * U.t(),
                         Mat::eye(U.cols, U.rows, numericDataType),
                         VVEpsilon));
 
@@ -197,7 +197,7 @@ TEST_F(MathModuleTest, updateSVD_V_stay_orthogonal )
 
 
   VVLOG("[ Test Body] MathModule::updateSVD()\n");
-  ASSERT_TRUE(MathModule::updateSVD(U,S,V,C));
+  ASSERT_TRUE(MathModule::updateSVD(U, S, V, C));
   EXPECT_TRUE(matsEqual(V*V.t(),
                         Mat::eye(V.cols, V.rows, numericDataType),
                         VVEpsilon));
@@ -218,20 +218,20 @@ TEST_F(MathModuleTest, updateSVD_compare_to_build_in )
 
   //tested function
   VVLOG("[ Test Body] MathModule::updateSVD()\n");
-  ASSERT_TRUE(MathModule::updateSVD(U,S,V,C));
+  ASSERT_TRUE(MathModule::updateSVD(U, S, V, C));
   //printing it's reasults
 
   VVLOG("Folowing pairs of matrices should be equal:\n");
 
   VV_PRINT_MAT(U);
   VV_PRINT_MAT(ocvU);
-  EXPECT_TRUE(matsEqual(ocvU,U,VVEpsilon));
+  EXPECT_TRUE(matsEqual(ocvU, U, VVEpsilon));
 
   VV_PRINT_MAT(S);
   VV_PRINT_MAT(ocvS);
-  EXPECT_TRUE(matsEqual(ocvS,S,VVEpsilon));
+  EXPECT_TRUE(matsEqual(ocvS, S, VVEpsilon));
 
   VV_PRINT_MAT(V);
   VV_PRINT_MAT(ocvVT.t());
-  EXPECT_TRUE(matsEqual(ocvVT.t(),V, VVEpsilon));
+  EXPECT_TRUE(matsEqual(ocvVT.t(), V, VVEpsilon));
 }
