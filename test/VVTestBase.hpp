@@ -1,4 +1,4 @@
-#include <iostream>
+#include <memory>
 #include <thread>
 #include <gtest/gtest.h>
 #include <opencv2/opencv.hpp>
@@ -18,10 +18,10 @@ class VVTestBase : public testing::Test
   virtual void TearDown();
 
 
-  static void timeoutThreadRoutine(bool *testFinishedLFlag);
+  static void timeoutThreadRoutine(std::shared_ptr <bool>  testFinishedFlag);
 
   static bool matsEqual(cv::Mat mat1, cv::Mat mat2, double epsilon);
 
   std::thread *  timeoutThread;
-  bool * testFinishedLFlag;
+  std::shared_ptr <bool>  testFinished;
 };
