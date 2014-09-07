@@ -4,6 +4,7 @@
 #include "ImageFeaturePoints.hpp"
 
 using namespace cv;
+using namespace VV;
 
 /*************************FIXTURE SECTION**************************/
 class FeaturePointExtractorTest : public VVTestBase
@@ -12,7 +13,7 @@ class FeaturePointExtractorTest : public VVTestBase
 
   virtual void postSetUp()
   {
-     image = Mat::zeros(Size(100,100), CV_8U);
+     image = std::shared_ptr<Mat>(new Mat(Mat::zeros(Size(100, 100), CV_8U)));
      fpe=new FeaturePointExtractor();
      callbackCalled=false;
      callbackFinished=false;
@@ -20,7 +21,6 @@ class FeaturePointExtractorTest : public VVTestBase
 
   virtual void preTearDown()
   {
-     image.release();
      delete fpe;
      callbackCalled=false;
      callbackFinished=false;
@@ -38,7 +38,7 @@ class FeaturePointExtractorTest : public VVTestBase
      owner->callbackFinished=true;
   }
 
-  Mat image;
+  std::shared_ptr<Mat> image;
   FeaturePointExtractor* fpe;
   bool callbackCalled;
   bool callbackFinished;
@@ -57,11 +57,11 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
 {
    ASSERT_TRUE(fpe);
    VVResultCode ret;
-   ret=fpe->startExtraction(NULL, callback, this);
+   ret=fpe->startExtraction(std::shared_ptr<Mat>(NULL), callback, this);
    EXPECT_EQ(ret,vVWrongParams);
-   ret=fpe->startExtraction(&image, NULL, this);
+   ret=fpe->startExtraction(image, NULL, this);
    EXPECT_EQ(ret,vVWrongParams);
-   ret=fpe->startExtraction(NULL, NULL, this);
+   ret=fpe->startExtraction(std::shared_ptr<Mat>(NULL), NULL, this);
    EXPECT_EQ(ret,vVWrongParams);
    VVLOG("[          ] app finished without crash\n");
 }
@@ -70,9 +70,9 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
 TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 {
    ASSERT_TRUE(fpe);
-   ASSERT_TRUE( image.data );
+   ASSERT_TRUE( image->data );
    VVResultCode ret;
-   ret=fpe->startExtraction(&image, callback, this);
+   ret=fpe->startExtraction(image, callback, this);
    EXPECT_EQ(ret, vVSuccess);
 
    //if callback will be called before timeout finish with success
@@ -84,7 +84,7 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 TEST_F(FeaturePointExtractorTest, resultNotNull)
 {
     VVResultCode ret;
-    ret=fpe->startExtraction(&image, callback, this);
+    ret=fpe->startExtraction(image, callback, this);
     EXPECT_EQ(ret, vVSuccess);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
@@ -95,7 +95,7 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
 TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
     VVResultCode ret;
-    ret=fpe->startExtraction(&image, callback, this);
+    ret=fpe->startExtraction(image, callback, this);
     VVLOG("[          ] Extractor launched\n");
     EXPECT_EQ(ret, vVSuccess);
     while(!callbackFinished);
@@ -113,10 +113,9 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
 //test if it finds any feature points
 TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
-    image.release();//release default one
-    image = imread( "lena-gray.png", 1 );
+    image = std::shared_ptr<Mat>(new Mat(imread( "lena-gray.png", 1 )));
     VVResultCode ret;
-    ret=fpe->startExtraction(&image, callback, this);
+    ret=fpe->startExtraction(image, callback, this);
     EXPECT_EQ(ret, vVSuccess);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);

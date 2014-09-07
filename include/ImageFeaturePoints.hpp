@@ -1,7 +1,12 @@
-#include "opencv2/opencv.hpp"
+#ifndef VV_IMAGE_FEATURE_POINTS_HPP
+#define VV_IMAGE_FEATURE_POINTS_HPP
+
+#include <opencv2/opencv.hpp>
 class ImageFeaturePoints
 {
    public:
-     vector<KeyPoint> keypoints;
-     Mat descriptors;
+     int imageID;
+     std::vector<cv::KeyPoint> keypoints;
+     cv::Mat descriptors;
 };
+#endif /*VV_IMAGE_FEATURE_POINTS_HPP*/

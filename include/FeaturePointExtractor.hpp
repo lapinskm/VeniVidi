@@ -1,32 +1,33 @@
-#ifndef VV_FEATUREPOINTEXTRACTOR_H
-#define VV_FEATUREPOINTEXTRACTOR_H
+#ifndef VV_FEATURE_POINT_EXTRACTOR_HPP
+#define VV_FEATURE_POINT_EXTRACTOR_HPP
 
 #include <thread>
+#include <memory>
 #include <opencv2/opencv.hpp>
+
 #include "common.hpp"
+#include "ImageFeaturePoints.hpp"
 
-using namespace cv;
-using namespace std;
-
+namespace VV
+{
 class FeaturePointExtractor
 {
   public:
     FeaturePointExtractor(){};
     ~FeaturePointExtractor(){};
-    static VVResultCode startExtraction(Mat * image,
+    static VVResultCode startExtraction(std::shared_ptr<cv::Mat>  image,
+                                        finishCallback cb,
+                                        void* userData);
+  private:
+
+    static void extractorThreadRoutine(std::shared_ptr<cv::Mat> image,
                                        finishCallback cb,
                                        void* userData);
-  private:
-    struct threadRoutineData
-    {
-       Mat * image;
-       finishCallback cb;
-       void* userData;
-    };
-
-    static void extractorThreadRoutine(void* data);
     static const char* detectStr;
     static const char* extractStr;
+
 };
-#endif /*VV_FEATUREPOINTEXTRACTOR_H*/
+
+}/*namespace VV*/
+#endif /*VV_FEATUREPOINTEXTRACTOR_HPP*/
 
