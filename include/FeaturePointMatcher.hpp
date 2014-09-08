@@ -1,6 +1,7 @@
 #ifndef VV_FEATUREPOINTMATCHER_HPP
 #define VV_FEATUREPOINTMATCHER_HPP
 
+#include <memory>
 #include <opencv2/opencv.hpp>
 #include "common.hpp"
 

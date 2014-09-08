@@ -1,7 +1,6 @@
 #ifndef VV_FEATURE_POINT_EXTRACTOR_HPP
 #define VV_FEATURE_POINT_EXTRACTOR_HPP
 
-#include <thread>
 #include <memory>
 #include <opencv2/opencv.hpp>
 
