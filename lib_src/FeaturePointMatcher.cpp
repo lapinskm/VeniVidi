@@ -2,58 +2,55 @@
 #include "FeaturePointMatcher.hpp"
 
 using namespace cv;
+using namespace VV;
+using std::shared_ptr;
 
-void FeaturePointMatcher::matcherThreadRoutine(void* data)
+void FeaturePointMatcher::matcherThreadRoutine(shared_ptr<Mat> descriptors1,
+                                               shared_ptr<Mat> descriptors2,
+                                               finishCallback cb,
+                                               void* userData)
 {
-  struct threadRoutineData* routineData;
-  routineData = static_cast<struct threadRoutineData*>(data);
-
   FlannBasedMatcher matcher;
 
   std::vector<DMatch>* matches;
   matches= new std::vector<DMatch>;
 
-  matcher.match(*(routineData->descriptors1),
-                *(routineData->descriptors2),
+  matcher.match(*descriptors1.get(),
+                *descriptors2.get(),
                 *matches);
 
   removePoorMatches(matches);
 
-  routineData->cb(matches, routineData->userData);
+  //Call the callback with reasult
+  cb(matches, userData);
 }
 
 
 //this function launches feature point matching in new thread
-VVResultCode FeaturePointMatcher::startMatching(Mat* descriptors1,
-                                                Mat* descriptors2,
+VVResultCode FeaturePointMatcher::startMatching(shared_ptr<Mat> descriptors1,
+                                                shared_ptr<Mat> descriptors2,
                                                 finishCallback cb,
                                                 void* userData)
 {
   //check if parameters are not NULL (user data could be)
-  if( NULL == descriptors1 || NULL == descriptors2 || NULL == cb)
+  if( NULL == descriptors1.get() || NULL == descriptors2.get() || NULL == cb)
   {
     return vVWrongParams;
   }
   //check if any of desciptors is empty
-  if ( descriptors1->empty() || descriptors2->empty() )
+  if ( descriptors1.get()->empty() || descriptors2.get()->empty() )
   {
     return vVFailure;
   }
   //check if descriptors are in right type. if not convert
-  if (CV_32F != descriptors1->type() )
-    descriptors1->convertTo(*descriptors1,CV_32F);
+  if (CV_32F != descriptors1.get()->type() )
+    descriptors1.get()->convertTo(*descriptors1.get(),CV_32F);
 
-  if(CV_32F != descriptors2->type() )
-     descriptors2->convertTo(*descriptors2,CV_32F);
+  if(CV_32F != descriptors2.get()->type() )
+     descriptors2.get()->convertTo(*descriptors2.get(),CV_32F);
 
-  //set up routine data structure
-  struct threadRoutineData* data = new struct threadRoutineData;
-  data->descriptors1=descriptors1;
-  data->descriptors2=descriptors2;
-  data->cb=cb;
-  data->userData=userData;
   //launch extractor thread
-  thread t(&matcherThreadRoutine,data);
+  std::thread t(&matcherThreadRoutine, descriptors1, descriptors2, cb, userData);
   t.detach();
   return vVSuccess;
 }
@@ -66,7 +63,7 @@ VVResultCode FeaturePointMatcher::removePoorMatches(vector<DMatch>* matches)
     return vVWrongParams;
   }
 
-  int    n       = matches->size();
+  int n = matches->size();
   double minDist = 100;
 
   for( int i = 0; i < n; i++ )
