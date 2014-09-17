@@ -1,10 +1,12 @@
 #include "common.hpp"
 #include "VVTestBase.hpp"
 #include "FeaturePointExtractor.hpp"
-#include "ImageFeaturePoints.hpp"
+#include "DataTypes.hpp"
 
 using namespace cv;
 using namespace VV;
+
+using std::shared_ptr;
 
 /*************************FIXTURE SECTION**************************/
 class FeaturePointExtractorTest : public VVTestBase
@@ -13,36 +15,38 @@ class FeaturePointExtractorTest : public VVTestBase
 
   virtual void postSetUp()
   {
-     image = std::shared_ptr<Mat>(new Mat(Mat::zeros(Size(100, 100), CV_8U)));
-     fpe=new FeaturePointExtractor();
-     callbackCalled=false;
-     callbackFinished=false;
+     image = shared_ptr<Mat>(new Mat(Mat::zeros(Size(100, 100), CV_8U)));
+     cbResult = shared_ptr<DataPoint2dVector>(NULL);
+     fpe = new FeaturePointExtractor();
+     callbackCalled = false;
+     callbackFinished = false;
   }
 
   virtual void preTearDown()
   {
      delete fpe;
-     callbackCalled=false;
-     callbackFinished=false;
+     callbackCalled = false;
+     callbackFinished = false;
   }
 
-  static void callback(void* result,void* userData)
+  static void callback(shared_ptr<DataPoint2dVector> result,
+                       void* userData)
   {
      VVLOG("[ Callback ] Start\n");
      FeaturePointExtractorTest* owner;
      owner=static_cast<FeaturePointExtractorTest*>(userData);
-     owner->callbackCalled=true;
-     owner->cbResult = static_cast<ImageFeaturePoints*>(result);
+     owner->callbackCalled = true;
+     owner->cbResult = result;
 
      VVLOG("[ Callback ] Finish\n");
-     owner->callbackFinished=true;
+     owner->callbackFinished = true;
   }
 
-  std::shared_ptr<Mat> image;
+  shared_ptr<Mat> image;
   FeaturePointExtractor* fpe;
   bool callbackCalled;
   bool callbackFinished;
-  ImageFeaturePoints* cbResult;
+  shared_ptr<DataPoint2dVector> cbResult;
 };
 
 
@@ -57,11 +61,11 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
 {
    ASSERT_TRUE(fpe);
    VVResultCode ret;
-   ret=fpe->startExtraction(std::shared_ptr<Mat>(NULL), callback, this);
+   ret=fpe->startExtraction(shared_ptr<Mat>(NULL), callback, this);
    EXPECT_EQ(ret,vVWrongParams);
    ret=fpe->startExtraction(image, NULL, this);
    EXPECT_EQ(ret,vVWrongParams);
-   ret=fpe->startExtraction(std::shared_ptr<Mat>(NULL), NULL, this);
+   ret=fpe->startExtraction(shared_ptr<Mat>(NULL), NULL, this);
    EXPECT_EQ(ret,vVWrongParams);
    VVLOG("[          ] app finished without crash\n");
 }
@@ -88,7 +92,7 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
     EXPECT_EQ(ret, vVSuccess);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
-    ASSERT_TRUE(cbResult);
+    ASSERT_TRUE(cbResult.get());
 }
 
 //test if blank image gives no features
@@ -100,11 +104,11 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
     EXPECT_EQ(ret, vVSuccess);
     while(!callbackFinished);
     //check if result is not NULL
-    ASSERT_TRUE(cbResult);
+    ASSERT_TRUE(cbResult.get());
     unsigned keypointCount;
     unsigned descriptorCount;
-    keypointCount=cbResult->keypoints.size();
-    descriptorCount=cbResult->descriptors.size().height;
+    keypointCount =   cbResult->getPoints().size();
+    descriptorCount = cbResult->getDescriptors().size().height;
     VVLOG("[          ] Check if blank image gives no features\n");
     EXPECT_EQ(keypointCount,0);
     EXPECT_EQ(descriptorCount,0);
@@ -113,19 +117,19 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
 //test if it finds any feature points
 TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
-    image = std::shared_ptr<Mat>(new Mat(imread( "lena-gray.png", 1 )));
+    image = shared_ptr<Mat>(new Mat(imread( "lena-gray.png", 1 )));
     VVResultCode ret;
     ret=fpe->startExtraction(image, callback, this);
     EXPECT_EQ(ret, vVSuccess);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
     //check if result is not NULL
-    ASSERT_TRUE(cbResult);
+    ASSERT_TRUE(cbResult.get());
 
     unsigned keypointCount;
     unsigned descriptorCount;
-    keypointCount=cbResult->keypoints.size();
-    descriptorCount=cbResult->descriptors.size().height;
+    keypointCount =   cbResult->getPoints().size();
+    descriptorCount = cbResult->getDescriptors().size().height;
     VVLOG("[          ] Check if lena image gives some features\n");
     EXPECT_GT(keypointCount,10);
     EXPECT_GT(descriptorCount,10);

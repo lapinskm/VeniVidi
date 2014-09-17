@@ -2,43 +2,57 @@
 #include <opencv2/opencv.hpp>
 
 #include "common.hpp"
+#include "DataTypes.hpp"
 #include "FeaturePointExtractor.hpp"
-#include "ImageFeaturePoints.hpp"
 
 using std::shared_ptr;
 
 using namespace cv;
 using namespace VV;
 
+//static FeaturePointExtractor fields
 const char* FeaturePointExtractor::detectStr="FAST";
 const char* FeaturePointExtractor::extractStr="FREAK";
 
 //this function extracts points and call the callback with result
 void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
-                                                  finishCallback cb,
+                                                  FeaturePointExtractorCb cb,
                                                   void* userData)
 {
-   //cout<<"extractorThreadRoutine begins\n";
-   ImageFeaturePoints* featurePoints = new ImageFeaturePoints();
+   //extractorThreadRoutine begins;
    Ptr<FeatureDetector>     detector=FeatureDetector::create(detectStr);
    Ptr<DescriptorExtractor> extractor=DescriptorExtractor::create(extractStr);
 
-   //cout<<"launching OpenCV detectors\n";
+   //launching OpenCV detectors;
    if (detector && extractor)
    {
-      detector  -> detect  (*image.get(), featurePoints->keypoints);
-      extractor -> compute (*image.get(), featurePoints->keypoints,
-                            featurePoints->descriptors);
-       //cout<<"done\n";
-       //launch callback when finish
-       cb(featurePoints, userData);
+      std::vector<KeyPoint> keypoints;
+
+      std::vector<cv::Point2d> points;
+      Mat descriptors;
+
+      detector  -> detect  (*image.get(), keypoints);
+      extractor -> compute (*image.get(), keypoints, descriptors);
+
+      //fill coordinates of dataPoints from the reasult of detector
+      for(int i = 0; i < keypoints.size(); i++)
+      {
+        points.push_back(keypoints[i].pt);
+      }
+
+      shared_ptr<DataPoint2dVector> dataPoints;
+      DataPoint2dVector* dp2dv = new DataPoint2dVector(points, descriptors);
+      dataPoints = shared_ptr<DataPoint2dVector>(dp2dv);
+
+      //launch callback when finish
+      cb(dataPoints, userData);
    }
    else VVLOG("extractors init failed\n");
 }
 
 //this function launches feature point extraction in new thread
 VVResultCode FeaturePointExtractor::startExtraction(shared_ptr<Mat> image,
-                                                    finishCallback cb,
+                                                    FeaturePointExtractorCb cb,
                                                     void* userData)
 {
    //check if parameters are not NULL (user data could be)
@@ -51,4 +65,5 @@ VVResultCode FeaturePointExtractor::startExtraction(shared_ptr<Mat> image,
    t.detach();
    return vVSuccess;
 }
+
 
