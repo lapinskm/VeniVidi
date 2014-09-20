@@ -19,9 +19,9 @@ class FeaturePointExtractor
     FeaturePointExtractor(){};
     ~FeaturePointExtractor(){};
 
-    static VVResultCode startExtraction(std::shared_ptr<cv::Mat>  image,
-                                        FeaturePointExtractorCb cb,
-                                        void* userData);
+    static ResultCode startExtraction(std::shared_ptr<cv::Mat>  image,
+                                      FeaturePointExtractorCb cb,
+                                      void* userData);
   private:
 
     static void extractorThreadRoutine(std::shared_ptr<cv::Mat> image,

@@ -13,13 +13,13 @@ class FeaturePointMatcher
   public:
     FeaturePointMatcher(){};
     ~FeaturePointMatcher(){};
-    static VVResultCode startMatching(std::shared_ptr<cv::Mat> descriptors1,
+    static ResultCode startMatching(std::shared_ptr<cv::Mat> descriptors1,
                                       std::shared_ptr<cv::Mat> descriptors2,
                                       finishCallback cb,
                                       void* userData);
 
   private:
-    static VVResultCode removePoorMatches(std::vector<cv::DMatch>* matches);
+    static ResultCode removePoorMatches(std::vector<cv::DMatch>* matches);
 
     static void matcherThreadRoutine(std::shared_ptr<cv::Mat> descriptors1,
                                      std::shared_ptr<cv::Mat> descriptors2,

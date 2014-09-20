@@ -51,19 +51,19 @@ void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
 }
 
 //this function launches feature point extraction in new thread
-VVResultCode FeaturePointExtractor::startExtraction(shared_ptr<Mat> image,
-                                                    FeaturePointExtractorCb cb,
-                                                    void* userData)
+ResultCode FeaturePointExtractor::startExtraction(shared_ptr<Mat> image,
+                                                  FeaturePointExtractorCb cb,
+                                                  void* userData)
 {
    //check if parameters are not NULL (user data could be)
    if( NULL == image || NULL == cb )
    {
-      return vVWrongParams;
+      return wrongParams;
    }
    //launch extractor thread
    std::thread t(&extractorThreadRoutine, image, cb, userData);
    t.detach();
-   return vVSuccess;
+   return success;
 }
 
 

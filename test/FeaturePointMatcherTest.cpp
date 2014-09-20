@@ -90,7 +90,7 @@ TEST_F(FeaturePointMatcherTest, defaultConstructor)
 TEST_F(FeaturePointMatcherTest, nullParameters)
 {
   ASSERT_TRUE(fpm);
-  VVResultCode ret;
+  ResultCode ret;
   Mat descr=Mat::zeros(1, 1, CV_32F);
 
   ret=fpm->startMatching(std::shared_ptr<Mat>(NULL),
@@ -98,7 +98,7 @@ TEST_F(FeaturePointMatcherTest, nullParameters)
                          callback,
                          this);
 
-  EXPECT_EQ(ret, vVWrongParams);
+  EXPECT_EQ(ret, wrongParams);
 
 
   ret=fpm->startMatching(empty_descr,
@@ -106,37 +106,37 @@ TEST_F(FeaturePointMatcherTest, nullParameters)
                          callback,
                          this);
 
-  EXPECT_EQ(ret, vVWrongParams);
+  EXPECT_EQ(ret, wrongParams);
 
   ret=fpm->startMatching(std::shared_ptr<Mat>(NULL),
                          std::shared_ptr<Mat>(NULL),
                           callback,
                           this);
 
-  EXPECT_EQ(ret, vVWrongParams);
+  EXPECT_EQ(ret, wrongParams);
 
   ret=fpm->startMatching(std::shared_ptr<Mat>(NULL),
                          std::shared_ptr<Mat>(NULL),
                          NULL,
                          this);
 
-  EXPECT_EQ(ret, vVWrongParams);
+  EXPECT_EQ(ret, wrongParams);
 
   ret=fpm->startMatching(empty_descr,
                         empty_descr,
                         NULL,
                         this);
 
-  EXPECT_EQ(ret, vVWrongParams);
+  EXPECT_EQ(ret, wrongParams);
 }
 
 //test if callback is called
 TEST_F(FeaturePointMatcherTest, callbackIsCalled)
 {
   ASSERT_TRUE(fpm);
-  VVResultCode ret;
+  ResultCode ret;
   ret=fpm->startMatching(empty_descr, empty_descr, callback, this);
-  EXPECT_EQ(ret, vVSuccess);
+  EXPECT_EQ(ret, success);
   //if callback will be called before timeout finish with success
   while (!callbackCalled);
 
@@ -147,9 +147,9 @@ TEST_F(FeaturePointMatcherTest, callbackIsCalled)
 TEST_F(FeaturePointMatcherTest, resultNotNull)
 {
   ASSERT_TRUE(fpm);
-  VVResultCode ret;
+  ResultCode ret;
   ret=fpm->startMatching(empty_descr, empty_descr, callback, this);
-  EXPECT_EQ(ret, vVSuccess);
+  EXPECT_EQ(ret, success);
   while (!callbackFinished);
   EXPECT_TRUE(cbResult);
 }
@@ -157,9 +157,9 @@ TEST_F(FeaturePointMatcherTest, resultNotNull)
 TEST_F(FeaturePointMatcherTest, sameDescriptors)
 {
   ASSERT_TRUE(fpm);
-  VVResultCode ret;
+  ResultCode ret;
   ret=fpm->startMatching(lena_descr, lena_descr, callback, this);
-  EXPECT_EQ(ret,vVSuccess);
+  EXPECT_EQ(ret,success);
   while (!callbackFinished);
   //faill when null
   ASSERT_TRUE(cbResult);
@@ -171,9 +171,9 @@ TEST_F(FeaturePointMatcherTest, sameDescriptors)
 TEST_F(FeaturePointMatcherTest, 120Rot)
 {
    ASSERT_TRUE(fpm);
-   VVResultCode ret;
+   ResultCode ret;
    ret=fpm->startMatching(lena_descr, lena_120deg_descr, callback, this);
-   EXPECT_EQ(ret, vVSuccess);
+   EXPECT_EQ(ret, success);
    while (!callbackFinished);
    //faill when null
    ASSERT_TRUE(cbResult);

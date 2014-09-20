@@ -60,13 +60,13 @@ TEST_F(FeaturePointExtractorTest, defaultConstructor)
 TEST_F(FeaturePointExtractorTest, nullParameters)
 {
    ASSERT_TRUE(fpe);
-   VVResultCode ret;
+   ResultCode ret;
    ret=fpe->startExtraction(shared_ptr<Mat>(NULL), callback, this);
-   EXPECT_EQ(ret,vVWrongParams);
+   EXPECT_EQ(ret,wrongParams);
    ret=fpe->startExtraction(image, NULL, this);
-   EXPECT_EQ(ret,vVWrongParams);
+   EXPECT_EQ(ret,wrongParams);
    ret=fpe->startExtraction(shared_ptr<Mat>(NULL), NULL, this);
-   EXPECT_EQ(ret,vVWrongParams);
+   EXPECT_EQ(ret,wrongParams);
    VVLOG("[          ] app finished without crash\n");
 }
 
@@ -75,9 +75,9 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 {
    ASSERT_TRUE(fpe);
    ASSERT_TRUE( image->data );
-   VVResultCode ret;
+   ResultCode ret;
    ret=fpe->startExtraction(image, callback, this);
-   EXPECT_EQ(ret, vVSuccess);
+   EXPECT_EQ(ret, success);
 
    //if callback will be called before timeout finish with success
    while(!callbackCalled);
@@ -87,9 +87,9 @@ TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 //check if result is not NULL
 TEST_F(FeaturePointExtractorTest, resultNotNull)
 {
-    VVResultCode ret;
+    ResultCode ret;
     ret=fpe->startExtraction(image, callback, this);
-    EXPECT_EQ(ret, vVSuccess);
+    EXPECT_EQ(ret, success);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
     ASSERT_TRUE(cbResult.get());
@@ -98,10 +98,10 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
 //test if blank image gives no features
 TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
-    VVResultCode ret;
+    ResultCode ret;
     ret=fpe->startExtraction(image, callback, this);
     VVLOG("[          ] Extractor launched\n");
-    EXPECT_EQ(ret, vVSuccess);
+    EXPECT_EQ(ret, success);
     while(!callbackFinished);
     //check if result is not NULL
     ASSERT_TRUE(cbResult.get());
@@ -118,9 +118,9 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
 TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
     image = shared_ptr<Mat>(new Mat(imread( "lena-gray.png", 1 )));
-    VVResultCode ret;
+    ResultCode ret;
     ret=fpe->startExtraction(image, callback, this);
-    EXPECT_EQ(ret, vVSuccess);
+    EXPECT_EQ(ret, success);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
     //check if result is not NULL

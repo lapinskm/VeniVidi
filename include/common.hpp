@@ -20,16 +20,18 @@
 extern std::mutex VVLogMtx;
 
 /******************Types declarations****************/
+namespace VV
+{
 typedef void (*finishCallback)(void* inputData,void* outputData);
 
 typedef enum
 {
-   vVSuccess=0,
-   vVWrongParams,
-   vVExecutionFailure,
-   vVFailure
+   success=0,
+   wrongParams,
+   executionFailure,
+   failure
 }
-VVResultCode;
+ResultCode;
 
 typedef struct
 {
@@ -39,5 +41,7 @@ typedef struct
 
 /***************Function Declarations****************/
 void displayMatrix(cv::Mat);
+
+}/*namespace VV*/
 
 #endif /*VV_COMMON_H*/

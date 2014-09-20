@@ -27,20 +27,20 @@ void FeaturePointMatcher::matcherThreadRoutine(shared_ptr<Mat> descriptors1,
 
 
 //this function launches feature point matching in new thread
-VVResultCode FeaturePointMatcher::startMatching(shared_ptr<Mat> descriptors1,
-                                                shared_ptr<Mat> descriptors2,
-                                                finishCallback cb,
-                                                void* userData)
+ResultCode FeaturePointMatcher::startMatching(shared_ptr<Mat> descriptors1,
+                                              shared_ptr<Mat> descriptors2,
+                                              finishCallback cb,
+                                              void* userData)
 {
   //check if parameters are not NULL (user data could be)
   if( NULL == descriptors1.get() || NULL == descriptors2.get() || NULL == cb)
   {
-    return vVWrongParams;
+    return wrongParams;
   }
   //check if any of desciptors is empty
   if ( descriptors1.get()->empty() || descriptors2.get()->empty() )
   {
-    return vVFailure;
+    return failure;
   }
   //check if descriptors are in right type. if not convert
   if (CV_32F != descriptors1.get()->type() )
@@ -52,15 +52,15 @@ VVResultCode FeaturePointMatcher::startMatching(shared_ptr<Mat> descriptors1,
   //launch extractor thread
   std::thread t(&matcherThreadRoutine, descriptors1, descriptors2, cb, userData);
   t.detach();
-  return vVSuccess;
+  return success;
 }
 
 //method from opencv example
-VVResultCode FeaturePointMatcher::removePoorMatches(vector<DMatch>* matches)
+ResultCode FeaturePointMatcher::removePoorMatches(vector<DMatch>* matches)
 {
   if( NULL == matches )
   {
-    return vVWrongParams;
+    return wrongParams;
   }
 
   int n = matches->size();
@@ -85,6 +85,6 @@ VVResultCode FeaturePointMatcher::removePoorMatches(vector<DMatch>* matches)
   }
   *matches=goodMatches;
 
-  return vVSuccess;
+  return success;
 }
 

@@ -1,26 +1,29 @@
 #include "ImagePreprocessor.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
 
-VVResultCode ImagePreprocessor::convertToGrayscale(Mat * colorMat,
-                                                   Mat * greyMat)
+using namespace VV;
+
+ResultCode ImagePreprocessor::convertToGrayscale(Mat * colorMat,
+                                                 Mat * greyMat)
 {
   if ( NULL == colorMat || NULL == greyMat )
   {
-    return vVWrongParams;
+    return wrongParams;
   }
 
   cv::cvtColor(*colorMat, *greyMat, CV_BGR2GRAY);
-  return vVSuccess;
+  return success;
 }
-VVResultCode ImagePreprocessor::removeDistortion(Mat* inputMat,
-                                                 Mat* outputMat,
-                                                 CalibData calData )
+ResultCode ImagePreprocessor::removeDistortion(Mat* inputMat,
+                                               Mat* outputMat,
+                                               CalibData calData )
 {
   if ( NULL == inputMat || NULL == outputMat )
   {
-    return vVWrongParams;
+    return wrongParams;
   }
   cv::undistort(*inputMat, *outputMat, calData.cameraMatrix, calData.distCoeffs);
-  return vVSuccess;
+  return success;
 }
+
 
