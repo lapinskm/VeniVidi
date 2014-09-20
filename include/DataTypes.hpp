@@ -56,8 +56,14 @@ class DataPoint2dVector
 class ImageData
 {
   public:
+    ImageData(DataPoint2dVector points):dataPoints(points){}
+
+    //geters
     DataPoint2dVector getDataPoints(){return dataPoints;}
     cv::Mat           getCameraData(){return cameraData;}
+
+    //seters
+    void              setCameraData(cv::Mat data){cameraData=data;}
 
   private:
     DataPoint2dVector dataPoints;
