@@ -47,7 +47,10 @@ void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
       //launch callback when finish
       cb(dataPoints, userData);
    }
-   else VVLOG("extractors init failed\n");
+   else
+   {
+      VVLOG("extractors init failed\n");
+   }
 }
 
 //this function launches feature point extraction in new thread
