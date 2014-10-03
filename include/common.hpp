@@ -29,6 +29,7 @@ typedef enum
    success=0,
    wrongParams,
    executionFailure,
+   nothingToDo,
    failure
 }
 ResultCode;

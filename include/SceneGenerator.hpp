@@ -3,51 +3,39 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "FeaturePointMatcher.hpp"
-#include "FeaturePointExtractor.hpp"
 #include "ImagePreprocessor.hpp"
 #include "DataManager.hpp"
+#include "JobManager.hpp"
+#include "common.hpp"
 
 namespace VV{
 
 class SceneGenerator
 {
   public:
-    SceneGenerator(){};
+    SceneGenerator();
+
     ~SceneGenerator(){};
 
-    void processImage(const char* path);
-    DataManager dataManagerGet() {return dmgr;}
+    ResultCode processImage(const char* path);
 
   private:
-    /*Finish callbacks for async modules*/
-    static void FeaturePointExtractorFinishCb(void* inputData,
-                                              void* outputData);
-
-    static void FeaturePointMatcherFinishCb(void* inputData,
-                                            void* outputData);
+    ResultCode loadImage(const char* path, Mat& image);
+    bool imageIsProcessworthy(Mat& Image);
 
   private:
-    /*submodules used to process image data*/
-
-    //image monochromization and distortion removal
-    ImagePreprocessor iprep;
-    //self expalnatory
-    FeaturePointExtractor fpext;
-    FeaturePointMatcher fpmtch;
+    //image kept to check if is the same as currently received
+    Mat PreviousImage;
 
     /*Not implemeted features*/
     //module increasing feature point amount by search in existing
     // point neighbourhood
     //FeaturePointDensifier fpdnsf;
 
+    /*Job sheduler*/
+    JobManager  jobMgr;
     /*Data storing module*/
-    DataManager dmgr;
-};
-struct FeaturePointExtractorUserData
-{
-  SceneGenerator* owner;
-  Mat* image;
+    DataManager DatMgr;
 };
 
 }/*namespace VV*/
