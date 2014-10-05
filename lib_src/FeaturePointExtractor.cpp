@@ -15,7 +15,7 @@ const char* FeaturePointExtractor::detectStr="FAST";
 const char* FeaturePointExtractor::extractStr="FREAK";
 
 //this function extracts points and call the callback with result
-void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
+void FeaturePointExtractor::extractorThreadRoutine(Mat* image,
                                                   FeaturePointExtractorCb cb,
                                                   void* userData)
 {
@@ -31,8 +31,8 @@ void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
       std::vector<cv::Point2d> points;
       Mat descriptors;
 
-      detector  -> detect  (*image.get(), keypoints);
-      extractor -> compute (*image.get(), keypoints, descriptors);
+      detector  -> detect  (*image, keypoints);
+      extractor -> compute (*image, keypoints, descriptors);
 
       //fill coordinates of dataPoints from the reasult of detector
       for(int i = 0; i < keypoints.size(); i++)
@@ -40,12 +40,10 @@ void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
         points.push_back(keypoints[i].pt);
       }
 
-      shared_ptr<DataPoint2dVector> dataPoints;
-      DataPoint2dVector* dp2dv = new DataPoint2dVector(points, descriptors);
-      dataPoints = shared_ptr<DataPoint2dVector>(dp2dv);
+      DataPoint2dVector* result = new DataPoint2dVector(points, descriptors);
 
       //launch callback when finish
-      cb(dataPoints, userData);
+      cb(result, userData);
    }
    else
    {
@@ -54,17 +52,17 @@ void FeaturePointExtractor::extractorThreadRoutine(shared_ptr<Mat> image,
 }
 
 //this function launches feature point extraction in new thread
-ResultCode FeaturePointExtractor::startExtraction(shared_ptr<Mat> image,
+ResultCode FeaturePointExtractor::startExtraction(Mat& image,
                                                   FeaturePointExtractorCb cb,
                                                   void* userData)
 {
    //check if parameters are not NULL (user data could be)
-   if( NULL == image || NULL == cb )
+   if( NULL == cb )
    {
       return wrongParams;
    }
    //launch extractor thread
-   std::thread t(&extractorThreadRoutine, image, cb, userData);
+   std::thread t(&extractorThreadRoutine, &image, cb, userData);
    t.detach();
    return success;
 }

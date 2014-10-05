@@ -15,8 +15,8 @@ class FeaturePointExtractorTest : public VVTestBase
 
   virtual void postSetUp()
   {
-     image = shared_ptr<Mat>(new Mat(Mat::zeros(Size(100, 100), CV_8U)));
-     cbResult = shared_ptr<DataPoint2dVector>(NULL);
+     image = Mat::zeros(Size(100, 100), CV_8U);
+     cbResult = NULL;
      fpe = new FeaturePointExtractor();
      callbackCalled = false;
      callbackFinished = false;
@@ -24,12 +24,14 @@ class FeaturePointExtractorTest : public VVTestBase
 
   virtual void preTearDown()
   {
-     delete fpe;
+     if (fpe) delete fpe;
+     if(cbResult) delete cbResult;
+
      callbackCalled = false;
      callbackFinished = false;
   }
 
-  static void callback(shared_ptr<DataPoint2dVector> result,
+  static void callback(DataPoint2dVector* result,
                        void* userData)
   {
      VVLOG("[ Callback ] Start\n");
@@ -42,11 +44,11 @@ class FeaturePointExtractorTest : public VVTestBase
      owner->callbackFinished = true;
   }
 
-  shared_ptr<Mat> image;
+  Mat image;
   FeaturePointExtractor* fpe;
   bool callbackCalled;
   bool callbackFinished;
-  shared_ptr<DataPoint2dVector> cbResult;
+  DataPoint2dVector* cbResult;
 };
 
 
@@ -61,11 +63,7 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
 {
    ASSERT_TRUE(fpe);
    ResultCode ret;
-   ret=fpe->startExtraction(shared_ptr<Mat>(NULL), callback, this);
-   EXPECT_EQ(ret,wrongParams);
    ret=fpe->startExtraction(image, NULL, this);
-   EXPECT_EQ(ret,wrongParams);
-   ret=fpe->startExtraction(shared_ptr<Mat>(NULL), NULL, this);
    EXPECT_EQ(ret,wrongParams);
    VVLOG("[          ] app finished without crash\n");
 }
@@ -74,7 +72,7 @@ TEST_F(FeaturePointExtractorTest, nullParameters)
 TEST_F(FeaturePointExtractorTest, callbackIsCalled)
 {
    ASSERT_TRUE(fpe);
-   ASSERT_TRUE( image->data );
+   ASSERT_TRUE( image.data );
    ResultCode ret;
    ret=fpe->startExtraction(image, callback, this);
    EXPECT_EQ(ret, success);
@@ -92,7 +90,7 @@ TEST_F(FeaturePointExtractorTest, resultNotNull)
     EXPECT_EQ(ret, success);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
-    ASSERT_TRUE(cbResult.get());
+    ASSERT_TRUE(cbResult);
 }
 
 //test if blank image gives no features
@@ -104,7 +102,7 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
     EXPECT_EQ(ret, success);
     while(!callbackFinished);
     //check if result is not NULL
-    ASSERT_TRUE(cbResult.get());
+    ASSERT_TRUE(cbResult);
     unsigned keypointCount;
     unsigned descriptorCount;
     keypointCount =   cbResult->getPoints().size();
@@ -117,14 +115,14 @@ TEST_F(FeaturePointExtractorTest, blankImageCase)
 //test if it finds any feature points
 TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
-    image = shared_ptr<Mat>(new Mat(imread( "lena-gray.png", 1 )));
+    image = imread( "lena-gray.png", 1 );
     ResultCode ret;
     ret=fpe->startExtraction(image, callback, this);
     EXPECT_EQ(ret, success);
     VVLOG("[          ] Extractor launched\n");
     while(!callbackFinished);
     //check if result is not NULL
-    ASSERT_TRUE(cbResult.get());
+    ASSERT_TRUE(cbResult);
 
     unsigned keypointCount;
     unsigned descriptorCount;

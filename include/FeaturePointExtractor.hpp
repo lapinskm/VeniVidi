@@ -1,7 +1,6 @@
 #ifndef VV_FEATURE_POINTi_EXTRACTOR_HPP
 #define VV_FEATURE_POINT_EXTRACTOR_HPP
 
-#include <memory>
 #include <opencv2/opencv.hpp>
 
 #include "common.hpp"
@@ -11,7 +10,7 @@ namespace VV
 {
 //callback type declaration
 typedef void (*FeaturePointExtractorCb)
-             (std::shared_ptr<DataPoint2dVector> result, void* userData);
+             (DataPoint2dVector* result, void* userData);
 
 class FeaturePointExtractor
 {
@@ -19,14 +18,19 @@ class FeaturePointExtractor
     FeaturePointExtractor(){};
     ~FeaturePointExtractor(){};
 
-    static ResultCode startExtraction(std::shared_ptr<cv::Mat>  image,
+    // starts asynchonous feature point extracion
+    // Afer finish cb is called. Passes ownership of result to callback.
+    static ResultCode startExtraction(cv::Mat&  image,
                                       FeaturePointExtractorCb cb,
                                       void* userData);
-  private:
 
-    static void extractorThreadRoutine(std::shared_ptr<cv::Mat> image,
+  private:
+   //Function which actually does feature point extaction.
+    static void extractorThreadRoutine(cv::Mat* image,
                                        FeaturePointExtractorCb cb,
                                        void* userData);
+
+  //strings used to setting up extractors openvc implementation
     static const char* detectStr;
     static const char* extractStr;
 
