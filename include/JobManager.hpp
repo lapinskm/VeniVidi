@@ -1,12 +1,14 @@
 #ifndef JOB_MANAGER_HPP
 #define JOB_MANAGER_HPP
 
-#include <opencv2/opencv.hpp>
-
 #include "common.hpp"
 #include "DataManager.hpp"
 #include "FeaturePointMatcher.hpp"
 #include "FeaturePointExtractor.hpp"
+
+#include <opencv2/opencv.hpp>
+#include <queue>
+#include <string>
 
 namespace VV
 {
@@ -15,14 +17,19 @@ class JobManager
 {
   public:
     JobManager(DataManager* data_manager);
-    ResultCode processImage(cv::Mat image);
+    ResultCode processImage(const std::string& path);
 
   private:
-    void extractorFinished();
-    void matcherFinished();
+    ResultCode startExtractor(const std::string& path);
+    static void onExtractorFinished(DataPoint2dVector* result, void* userData);
+    void onMatcherFinished();
 
-    void* extractorDataQueue;
+    std::queue<std::string> extractorDataQueue;
     void* matcherDataQueue;
+
+    //Maximum and current extractor jobs
+    unsigned short m_extrJobCountMax;
+    unsigned short m_extrJobCount;
 
     //submodules used to process image data
     FeaturePointExtractor m_fpext;

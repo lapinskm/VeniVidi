@@ -30,6 +30,7 @@ typedef enum
    wrongParams,
    executionFailure,
    nothingToDo,
+   postponed,
    failure
 }
 ResultCode;
