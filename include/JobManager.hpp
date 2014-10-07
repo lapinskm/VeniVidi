@@ -20,16 +20,20 @@ class JobManager
     ResultCode processImage(const std::string& path);
 
   private:
-    ResultCode startExtractor(const std::string& path);
+    ResultCode startExtractor(const std::string path);
     static void onExtractorFinished(DataPoint2dVector* result, void* userData);
+    ResultCode startMatcher(DataPoint2dVector* newKeypoints);
     void onMatcherFinished();
 
     std::queue<std::string> extractorDataQueue;
     void* matcherDataQueue;
 
     //Maximum and current extractor jobs
-    unsigned short m_extrJobCountMax;
-    unsigned short m_extrJobCount;
+    unsigned m_extrJobCountMax;
+    unsigned m_extrJobCount;
+
+    //Amount of threads used to matching keypoints
+    unsigned m_matcherThreadCount;
 
     //submodules used to process image data
     FeaturePointExtractor m_fpext;
