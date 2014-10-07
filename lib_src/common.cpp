@@ -16,3 +16,29 @@ void displayMatrix(cv::Mat mat)
    printf ("cols = %d rows = %d\n\n", mat.cols, mat.rows);
 }
 
+const char* VV::resultCodeToString(VV::ResultCode code)
+{
+  switch(code)
+  {
+    case success:
+      return "success";
+
+    case wrongParams:
+      return "wrongParams";
+
+    case executionFailure:
+      return "executionFailure";
+
+    case nothingToDo:
+      return "nothingToDo";
+
+    case postponed:
+      return "postponed";
+
+    case failure:
+      return "failure";
+
+    default:
+      return "unknown";
+  }
+}

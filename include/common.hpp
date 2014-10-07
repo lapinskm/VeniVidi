@@ -10,7 +10,11 @@
  VVLogMtx.lock(); fprintf (stderr, format, ## __VA_ARGS__); VVLogMtx.unlock()
 
 #define VV_PRINT_MAT(mat)\
- VVLogMtx.lock(); printf("%s = \n",#mat); displayMatrix(mat); VVLogMtx.unlock()
+ VVLogMtx.lock(); printf("%s = \n", #mat); displayMatrix(mat); VVLogMtx.unlock()
+
+#define VV_LOG_RESULT_CODE(code)\
+   VVLogMtx.lock(); fprintf(stderr, "%s:%d %s=%s\n", __FILE__, __LINE__, #code,\
+                            resultCodeToString(code)); VVLogMtx.unlock()
 
 //common opencv numeric calculation data type
 #define numericDataType CV_64FC1
@@ -43,6 +47,7 @@ typedef struct
 
 /***************Function Declarations****************/
 void displayMatrix(cv::Mat);
+const char* resultCodeToString(ResultCode);
 
 }/*namespace VV*/
 
