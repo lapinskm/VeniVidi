@@ -1,3 +1,6 @@
+#include <chrono>
+#include <thread>
+
 #include "common.hpp"
 #include "VVTestBase.hpp"
 #include "FeaturePointExtractor.hpp"
@@ -6,101 +9,96 @@
 using namespace cv;
 using namespace VV;
 
-using std::shared_ptr;
-
 /*************************FIXTURE SECTION**************************/
-class FeaturePointExtractorTest : public VVTestBase
+class FeaturePointExtractorTest :public FeaturePointExtractorUser
+                                ,public VVTestBase
 {
  protected:
 
   virtual void postSetUp()
   {
+     dura = std::chrono::milliseconds (100);
      image = Mat::zeros(Size(100, 100), CV_8U);
      cbResult = NULL;
-     fpe = new FeaturePointExtractor();
-     callbackCalled = false;
-     callbackFinished = false;
+     onExtactionFinishedCalled = false;
+     onExtactionFinishedEnded = false;
   }
 
   virtual void preTearDown()
   {
-     if (fpe) delete fpe;
      if(cbResult) delete cbResult;
-
-     callbackCalled = false;
-     callbackFinished = false;
   }
 
-  static void callback(DataPoint2dVector* result,
-                       void* userData)
+  virtual void onExtactionFinished(DataPoint2dVector* result)
   {
      VVLOG("[ Callback ] Start\n");
-     FeaturePointExtractorTest* owner;
-     owner=static_cast<FeaturePointExtractorTest*>(userData);
-     owner->callbackCalled = true;
-     owner->cbResult = result;
+     onExtactionFinishedCalled = true;
+     cbResult = result;
 
      VVLOG("[ Callback ] Finish\n");
-     owner->callbackFinished = true;
+     onExtactionFinishedEnded = true;
   }
 
+  virtual void onExtactionFailed()
+  {}
+
   Mat image;
-  FeaturePointExtractor* fpe;
-  bool callbackCalled;
-  bool callbackFinished;
+  bool onExtactionFinishedCalled;
+  bool onExtactionFinishedEnded;
   DataPoint2dVector* cbResult;
+  std::chrono::milliseconds dura;
 };
 
 
-/**************************TESTS SECTION***************************/
-// Tests the default c'tor.
-TEST_F(FeaturePointExtractorTest, defaultConstructor)
-{
-   ASSERT_TRUE(fpe);
-}
 
-TEST_F(FeaturePointExtractorTest, nullParameters)
+
+/**************************TESTS SECTION***************************/
+
+TEST_F(FeaturePointExtractorTest, emptyImage)
 {
-   ASSERT_TRUE(fpe);
-   ResultCode ret;
-   ret=fpe->startExtraction(image, NULL, this);
-   EXPECT_EQ(ret,wrongParams);
+	image=Mat();
+	EXPECT_EQ(startExtractor(image) , wrongParams);
    VVLOG("[          ] app finished without crash\n");
 }
 
 //test if callback is called
-TEST_F(FeaturePointExtractorTest, callbackIsCalled)
+TEST_F(FeaturePointExtractorTest, onExtactionFinishedCalled)
 {
-   ASSERT_TRUE(fpe);
    ASSERT_TRUE( image.data );
    ResultCode ret;
-   ret=fpe->startExtraction(image, callback, this);
-   EXPECT_EQ(ret, success);
+   EXPECT_EQ(startExtractor(image), success);
 
    //if callback will be called before timeout finish with success
-   while(!callbackCalled);
+   while( !onExtactionFinishedCalled )
+   {
+     std::this_thread::sleep_for( dura );
+   }
+
    SUCCEED();
 }
 
 //check if result is not NULL
 TEST_F(FeaturePointExtractorTest, resultNotNull)
 {
-    ResultCode ret;
-    ret=fpe->startExtraction(image, callback, this);
-    EXPECT_EQ(ret, success);
+    EXPECT_EQ(startExtractor(image),success);
     VVLOG("[          ] Extractor launched\n");
-    while(!callbackFinished);
+
+    while( !onExtactionFinishedEnded )
+    {
+       std::this_thread::sleep_for( dura );
+    }
     ASSERT_TRUE(cbResult);
 }
 
 //test if blank image gives no features
 TEST_F(FeaturePointExtractorTest, blankImageCase)
 {
-    ResultCode ret;
-    ret=fpe->startExtraction(image, callback, this);
+    EXPECT_EQ(startExtractor(image), success);
     VVLOG("[          ] Extractor launched\n");
-    EXPECT_EQ(ret, success);
-    while(!callbackFinished);
+    while( !onExtactionFinishedEnded )
+    {
+        std::this_thread::sleep_for( dura );
+    }
     //check if result is not NULL
     ASSERT_TRUE(cbResult);
     unsigned keypointCount;
@@ -117,10 +115,12 @@ TEST_F(FeaturePointExtractorTest, lenaImageCase)
 {
     image = imread( "lena-gray.png", 1 );
     ResultCode ret;
-    ret=fpe->startExtraction(image, callback, this);
-    EXPECT_EQ(ret, success);
+    EXPECT_EQ(startExtractor(image), success);
     VVLOG("[          ] Extractor launched\n");
-    while(!callbackFinished);
+    while( !onExtactionFinishedEnded )
+    {
+      std::this_thread::sleep_for( dura );
+    }
     //check if result is not NULL
     ASSERT_TRUE(cbResult);
 

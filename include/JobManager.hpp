@@ -13,7 +13,7 @@
 namespace VV
 {
 
-class JobManager
+class JobManager: public FeaturePointExtractorUser
 {
   public:
     JobManager(DataManager* data_manager);
@@ -21,7 +21,10 @@ class JobManager
 
   private:
     ResultCode startExtractor(const std::string path);
-    static void onExtractorFinished(DataPoint2dVector* result, void* userData);
+    //
+    void onExtractionFinished(DataPoint2dVector* result);
+    void onExtractionFailed();
+
     ResultCode startMatcher(DataPoint2dVector* newKeypoints);
     void onMatcherFinished();
 
@@ -36,7 +39,6 @@ class JobManager
     unsigned m_matcherThreadCount;
 
     //submodules used to process image data
-    FeaturePointExtractor m_fpext;
     FeaturePointMatcher   m_fpmtch;
 
     //pointer to Data  manager. Object is owned by SceneGenerator

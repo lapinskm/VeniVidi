@@ -51,29 +51,28 @@ ResultCode JobManager::startExtractor(const string path)
   {
     return returnVal;
   }
-  return m_fpext.startExtraction(image, onExtractorFinished, this);
+  //Inherited function FeaturePointExtractorUser interface
+  return FeaturePointExtractorUser::startExtractor(image);
 }
 
-void JobManager::onExtractorFinished(DataPoint2dVector* keypoints, void* data)
+void JobManager::onExtractionFinished(DataPoint2dVector* keypoints)
 {
-  JobManager* owner = static_cast<JobManager*>(data);
-
   //job just finished, decrement counter
-  owner->m_extrJobCount--;
+  m_extrJobCount--;
   //if there someting left in queue, start extractor again
-  if(! owner->extractorDataQueue.empty())
+  if(! extractorDataQueue.empty())
   {
     ResultCode returnVal;
-    returnVal = owner->startExtractor(owner->extractorDataQueue.front());
+    returnVal = startExtractor(extractorDataQueue.front());
     switch (returnVal)
     {
       case success:
         //job started succesfully. Remove data from queue,
-        owner->extractorDataQueue.pop();
+        extractorDataQueue.pop();
         //and increment Job counter
         //TODO: Add mutex or other mechanism to prevent exceed maximum job count
-        owner->m_extrJobCount++;
-        owner->startMatcher(keypoints);
+        m_extrJobCount++;
+        startMatcher(keypoints);
         break;
 
       case postponed:
@@ -86,6 +85,11 @@ void JobManager::onExtractorFinished(DataPoint2dVector* keypoints, void* data)
         break;
     }
   }
+}
+
+void onExtractionFailed()
+{
+   VVLOG("onExtractionFailed called");
 }
 
 ResultCode JobManager::startMatcher(DataPoint2dVector* newKeypoints)
