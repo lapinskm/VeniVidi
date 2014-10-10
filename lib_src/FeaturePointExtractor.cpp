@@ -10,7 +10,7 @@ using std::shared_ptr;
 using namespace cv;
 using namespace VV;
 
-/*########################## FeaturePointExtractorUser ##########################*/
+/*########################## FeaturePointExtractor ##########################*/
 //static FeaturePointExtractor fields
 const char* FeaturePointExtractor::detectStr="FAST";
 const char* FeaturePointExtractor::extractStr="FREAK";
