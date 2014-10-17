@@ -9,6 +9,10 @@
 #define VVLOG(format, ...)\
  VVLogMtx.lock(); fprintf (stderr, format, ## __VA_ARGS__); VVLogMtx.unlock()
 
+#define VVLOG_SOURCE_INFO()\
+ VVLogMtx.lock(); fprintf(stderr, "%s:%d In function %s\n", __FILE__, __LINE__,\
+__func__); VVLogMtx.unlock()
+
 #define VV_PRINT_MAT(mat)\
  VVLogMtx.lock(); printf("%s = \n", #mat); displayMatrix(mat); VVLogMtx.unlock()
 
