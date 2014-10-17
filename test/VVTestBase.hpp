@@ -1,5 +1,6 @@
 #include <memory>
 #include <thread>
+#include <chrono>
 #include <gtest/gtest.h>
 #include <opencv2/opencv.hpp>
 
@@ -7,6 +8,8 @@
 class VVTestBase : public testing::Test
 {
  protected:
+
+  void waitUntil(bool& condition);
 
   virtual void postSetUp(){}
 
@@ -24,4 +27,5 @@ class VVTestBase : public testing::Test
 
   std::thread *  timeoutThread;
   std::shared_ptr <bool>  testFinished;
+  std::chrono::milliseconds checkInterval;
 };

@@ -9,9 +9,18 @@ using cv::Mat;
 static mutex FinishTestMutex;
 static const int timeoutTime = 1;
 
+void VVTestBase::waitUntil(bool& condition)
+{
+  while ( !condition )
+  {
+    std::this_thread::sleep_for( checkInterval );
+  }
+}
+
 void VVTestBase::SetUp()
 {
    VVLOG("[ SetUp    ]\n");
+   checkInterval = std::chrono::milliseconds (100);
    testFinished= std::shared_ptr <bool> (new bool(false));
    //launch timeout thread
    timeoutThread= new thread(&timeoutThreadRoutine, testFinished);
@@ -80,3 +89,4 @@ bool VVTestBase::matsEqual(Mat mat1, Mat mat2, double epsilon)
   }
   return true;
 }
+
