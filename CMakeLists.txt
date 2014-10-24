@@ -5,7 +5,11 @@ project( VeniVidi )
 find_package( OpenCV REQUIRED )
 
 include_directories(include)
-set (CMAKE_CXX_FLAGS "-std=c++11")
+
+#COMPILER FLAGS
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -o2")
 
 #LIBRARY
 file(GLOB LIB_SOURCE lib_src/*)
@@ -17,7 +21,7 @@ target_link_libraries( VeniVidi ${OpenCV_LIBS} )
 file(GLOB APP_SOURCE app_src/*)
 
 add_executable( VeniVidiVici  ${APP_SOURCE} )
-target_link_libraries(VeniVidiVici VeniVidi)
+target_link_libraries( VeniVidiVici VeniVidi )
 
 #UNITTESTS
 add_subdirectory(gtest)
