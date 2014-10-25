@@ -3,54 +3,66 @@
 
 using namespace cv;
 using namespace VV;
-using std::shared_ptr;
+using std::vector;
 
-void FeaturePointMatcher::matcherThreadRoutine(shared_ptr<Mat> descriptors1,
-                                               shared_ptr<Mat> descriptors2,
-                                               finishCallback cb,
-                                               void* userData)
+void FeaturePointMatcher::matcherRoutine(const Mat& descriptors1,
+                                         const Mat& descriptors2,
+                                         FeaturePointMatcherUser* user)
 {
   FlannBasedMatcher matcher;
 
-  std::vector<DMatch>* matches;
-  matches= new std::vector<DMatch>;
+  vector<DMatch>* matches = new vector<DMatch>;
 
-  matcher.match(*descriptors1.get(),
-                *descriptors2.get(),
+  matcher.match(descriptors1,
+                descriptors2,
                 *matches);
 
-  removePoorMatches(matches);
+  if ( success != removePoorMatches(matches) )
+  {
+    if(matches)
+    {
+       delete matches;
+    }
+    user->onMatchingFailed();
+    return;
+  }
 
-  //Call the callback with reasult
-  cb(matches, userData);
+  if (!matches)
+  {
+    user->onMatchingFailed();
+    return;
+  }
+
+  //Call the callback with result
+  user->onMatchingFinished(matches);
 }
 
 
 //this function launches feature point matching in new thread
-ResultCode FeaturePointMatcher::startMatching(shared_ptr<Mat> descriptors1,
-                                              shared_ptr<Mat> descriptors2,
-                                              finishCallback cb,
-                                              void* userData)
+ResultCode FeaturePointMatcher::startMatching(Mat& descriptors1,
+                                              Mat& descriptors2)
 {
-  //check if parameters are not NULL (user data could be)
-  if( NULL == descriptors1.get() || NULL == descriptors2.get() || NULL == cb)
+  if (!descriptors1.data || !descriptors2.data )
   {
     return wrongParams;
   }
+
   //check if any of desciptors is empty
-  if ( descriptors1.get()->empty() || descriptors2.get()->empty() )
+  if ( descriptors1.empty() || descriptors2.empty() )
   {
     return failure;
   }
-  //check if descriptors are in right type. if not convert
-  if (CV_32F != descriptors1.get()->type() )
-    descriptors1.get()->convertTo(*descriptors1.get(),CV_32F);
 
-  if(CV_32F != descriptors2.get()->type() )
-     descriptors2.get()->convertTo(*descriptors2.get(),CV_32F);
+  //check if descriptors are in right type. if not convert
+  if (CV_32F != descriptors1.type() )
+  {
+    descriptors1.convertTo(descriptors1, CV_32F);
+  }
+  if(CV_32F != descriptors2.type() )
+     descriptors2.convertTo(descriptors2, CV_32F);
 
   //launch extractor thread
-  std::thread t(&matcherThreadRoutine, descriptors1, descriptors2, cb, userData);
+  std::thread t(&matcherRoutine, descriptors1, descriptors2, m_user);
   t.detach();
   return success;
 }
@@ -75,7 +87,7 @@ ResultCode FeaturePointMatcher::removePoorMatches(vector<DMatch>* matches)
   /* Leave only "good" matches (i.e. whose distance is less than 2*min_dist,
   or a small arbitary value ( 0.02 ) in the event that min_dist is very small)
   PS. radiusMatch can also be used here.*/
-  std::vector< DMatch > goodMatches;
+  vector< DMatch > goodMatches;
 
   for( int i = 0; i < n; i++ )
   { if( (*matches)[i].distance <= max(2*minDist, 0.02) )

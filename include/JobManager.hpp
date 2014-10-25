@@ -14,6 +14,7 @@ namespace VV
 {
 
 class JobManager: public FeaturePointExtractorUser
+                , public FeaturePointMatcherUser
 {
   public:
     JobManager(DataManager* data_manager);
@@ -26,7 +27,9 @@ class JobManager: public FeaturePointExtractorUser
     void onExtractionFailed();
 
     ResultCode startMatcher(DataPoint2dVector* newKeypoints);
-    void onMatcherFinished();
+
+    void onMatchingFinished(std::vector<cv::DMatch>* result){};
+    void onMatchingFailed(){};
 
     std::queue<std::string> extractorDataQueue;
     void* matcherDataQueue;
@@ -37,9 +40,6 @@ class JobManager: public FeaturePointExtractorUser
 
     //Amount of threads used to matching keypoints
     unsigned m_matcherThreadCount;
-
-    //submodules used to process image data
-    FeaturePointMatcher   m_fpmtch;
 
     //pointer to Data  manager. Object is owned by SceneGenerator
     DataManager* m_DatMgr;
