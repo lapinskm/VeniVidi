@@ -7,6 +7,7 @@ using std::vector;
 
 void FeaturePointMatcher::matcherRoutine(const Mat& descriptors1,
                                          const Mat& descriptors2,
+                                         int id,
                                          FeaturePointMatcherUser* user)
 {
   FlannBasedMatcher matcher;
@@ -23,24 +24,25 @@ void FeaturePointMatcher::matcherRoutine(const Mat& descriptors1,
     {
        delete matches;
     }
-    user->onMatchingFailed();
+    user->onMatchingFailed(id);
     return;
   }
 
   if (!matches)
   {
-    user->onMatchingFailed();
+    user->onMatchingFailed(id);
     return;
   }
 
   //Call the callback with result
-  user->onMatchingFinished(matches);
+  user->onMatchingFinished(matches, id);
 }
 
 
 //this function launches feature point matching in new thread
 ResultCode FeaturePointMatcher::startMatching(Mat& descriptors1,
-                                              Mat& descriptors2)
+                                              Mat& descriptors2,
+                                              int id)
 {
   if (!descriptors1.data || !descriptors2.data )
   {
@@ -62,7 +64,7 @@ ResultCode FeaturePointMatcher::startMatching(Mat& descriptors1,
      descriptors2.convertTo(descriptors2, CV_32F);
 
   //launch extractor thread
-  std::thread t(&matcherRoutine, descriptors1, descriptors2, m_user);
+  std::thread t(&matcherRoutine, descriptors1, descriptors2, id, m_user);
   t.detach();
   return success;
 }

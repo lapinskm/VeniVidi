@@ -28,8 +28,8 @@ class JobManager: public FeaturePointExtractorUser
 
     ResultCode startMatcher(DataPoint2dVector* newKeypoints);
 
-    void onMatchingFinished(std::vector<cv::DMatch>* result){};
-    void onMatchingFailed(){};
+    void onMatchingFinished(std::vector<cv::DMatch>* result, int id){};
+    void onMatchingFailed(int id){};
 
     std::queue<std::string> extractorDataQueue;
     void* matcherDataQueue;

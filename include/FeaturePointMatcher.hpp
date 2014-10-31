@@ -22,8 +22,11 @@ class FeaturePointMatcher
     //one functions of interface FeaturePointMatcherUser is called.
     //Depending on if matching succeded, it would be onMatchingFinished or
     // onMatchingFailed.
+    //Id is job identifier which allows to recognize which task was finished,
+    //when onMatchingFinished or onMatchingFailed is called.
     ResultCode startMatching(cv::Mat& descriptors1,
-                             cv::Mat& descriptors2);
+                             cv::Mat& descriptors2,
+                             int id);
 
   private:
     //Removes matches which descriptors are to distant to each other.
@@ -32,6 +35,7 @@ class FeaturePointMatcher
     //Performs actual matching
     static void matcherRoutine(const cv::Mat& descriptors1,
                                const cv::Mat& descriptors2,
+                               int id,
                                FeaturePointMatcherUser* user);
 
     //Object informed about execution status.
@@ -51,16 +55,20 @@ class FeaturePointMatcherUser
     {}
 
     //This function is called if matching finished successfully.
-    virtual void onMatchingFinished(std::vector<cv::DMatch>* result) = 0;
+    //id is job identifier
+    virtual void onMatchingFinished(std::vector<cv::DMatch>* result,
+                                    int id) = 0;
 
     //This function is called if matching failed.
-    virtual void onMatchingFailed() = 0;
+    //id is job identifier
+    virtual void onMatchingFailed(int id) = 0;
 
   public:
     ResultCode startMatcher(cv::Mat& descriptors1,
-                            cv::Mat& descriptors2)
+                            cv::Mat& descriptors2,
+                            int id)
     {
-      return m_matcher.startMatching(descriptors1, descriptors2);
+      return m_matcher.startMatching(descriptors1, descriptors2, id);
     }
 
   private:
