@@ -15,12 +15,13 @@ class utilsTest : public VVTestBase
 
 
 /**************************TESTS SECTION***************************/
+
 TEST_F(utilsTest, imagesAlmostSame_emptyImages)
 {
   EXPECT_FALSE( imagesAlmostSame(image1, image2));
 }
 
-TEST_F(utilsTest, imagesAlmostSame_SizeNotMatch)
+TEST_F(utilsTest, imagesAlmostSame_sizeNotMatch)
 {
   image1 = Mat(200, 100, numericDataType);
   image2 = Mat(100, 100, numericDataType);
@@ -31,7 +32,7 @@ TEST_F(utilsTest, imagesAlmostSame_SizeNotMatch)
   EXPECT_FALSE( imagesAlmostSame(image1, image2));
 }
 
-TEST_F(utilsTest,  imagesAlmostSame_NegativeCase)
+TEST_F(utilsTest,  imagesAlmostSame_negativeCase)
 {
   image1 = imread("lena-gray.png"       , CV_LOAD_IMAGE_GRAYSCALE);
   image2 = imread("lena-gray-120deg.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -45,10 +46,26 @@ TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_blank)
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
 }
 
+TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_sameImg)
+{
+  image1 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
+  image2 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
+
+  ASSERT_TRUE(image1.data);
+  ASSERT_TRUE(image2.data);
+
+  EXPECT_TRUE( imagesAlmostSame(image1, image2));
+}
+
+
 TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_lena)
 {
   image1 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
   image2 = imread("lena-gray-0_09noise.png", CV_LOAD_IMAGE_GRAYSCALE);
+
+  ASSERT_TRUE(image1.data);
+  ASSERT_TRUE(image2.data);
+
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
 }
 
