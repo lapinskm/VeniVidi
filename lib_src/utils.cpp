@@ -8,6 +8,7 @@ using namespace VV;
 using namespace cv;
 using std::string;
 
+
 bool VV::imagesAlmostSame(Mat& image1, Mat& image2)
 {
   //there is no need to check anything when images have different size or
@@ -20,7 +21,7 @@ bool VV::imagesAlmostSame(Mat& image1, Mat& image2)
   }
 
   //Maximum mean of absolute difference between images, Magic number.
-  const double deltaMax = 0.01;
+  const double deltaMax = 30;
 
   Mat diff;
   absdiff(image1, image2, diff);
