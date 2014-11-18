@@ -7,9 +7,24 @@ find_package( OpenCV REQUIRED )
 include_directories(include)
 
 #COMPILER FLAGS
+
+#COMMON
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+#DEBUG BUILD
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs")
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ftest-coverage")
+
+#RELEASE BUILD
 set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -o2")
+
+#LINKER FLAGS
+#DEBUG BUILD
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG
+                           "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG
+                          "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ftest-coverage")
 
 #LIBRARY
 file(GLOB LIB_SOURCE lib_src/*)

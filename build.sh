@@ -7,13 +7,14 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 clean_build=0
 run_tests=0
 debug_build=0
+run_gcovr=0
 
 cmake_options=""
 
 #oneliner from internet
 repo_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-build_dir="$repo_dir/outDir/Release/"
+build_dir="$repo_dir/outDir/Release"
 
 function show_help {
 echo "Usage: ./build [OPITONS]"
@@ -22,11 +23,12 @@ echo "  -h,      displays help"
 echo "  -c,      clears build directory"
 echo "  -t,      launches tests afer succesfull build"
 echo "  -d,      builds as debug"
+echo "  -C,      generate coverage report(sets aslo -d and -r options)"
 echo ""
 }
 
 #Script options handling
-while getopts "h?ctd" opt; do
+while getopts "h?ctdC" opt; do
     case "$opt" in
     h|\?)
         show_help
@@ -37,6 +39,10 @@ while getopts "h?ctd" opt; do
     t)  run_tests=1
         ;;
     d)  debug_build=1
+        ;;
+    C)  run_tests=1
+        debug_build=1
+        run_gcovr=1
     esac
 done
 
@@ -46,10 +52,10 @@ shift $((OPTIND-1))
 
 #debug/release setup
 if [ $debug_build -eq 1 ]; then
-    build_dir="$repo_dir/outDir/Debug/"
+    build_dir="$repo_dir/outDir/Debug"
     cmake_options="-DCMAKE_BUILD_TYPE=Debug"
 else
-    build_dir="$repo_dir/outDir/Release/"
+    build_dir="$repo_dir/outDir/Release"
     cmake_options="-DCMAKE_BUILD_TYPE=Release"
 fi
 
@@ -75,4 +81,11 @@ if [ $run_tests -eq 1 ]; then
     ./runUnitTests
 fi
 
-popd
+popd #back to repo dir
+
+#generate report
+if [ $run_gcovr -eq 1 ]; then
+    ./covReport.sh . $build_dir/coverage_report
+fi
+
+
