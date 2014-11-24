@@ -20,14 +20,14 @@
   VVLogMtx.unlock();\
 }
 
-#define VV_PRINT_MAT(mat)\
+#define VVLOG_MAT(mat)\
 {\
  VVLogMtx.lock(); printf("%s = \n", #mat);\
   displayMatrix(mat);\
   VVLogMtx.unlock();\
 }
 
-#define VV_LOG_RESULT_CODE(code)\
+#define VVLOG_RESULT_CODE(code)\
 {\
   VVLogMtx.lock();\
   fprintf(stderr, "%s:%d %s=%s\n", __FILE__, __LINE__, #code,\

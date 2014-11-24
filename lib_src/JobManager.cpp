@@ -31,7 +31,7 @@ ResultCode JobManager::processImage(const string& path)
   }
   else
   {
-    VV_LOG_RESULT_CODE(returnVal);
+    VVLOG_RESULT_CODE(returnVal);
   }
   return returnVal;
 }
@@ -81,7 +81,7 @@ void JobManager::onExtractionFinished(DataPoint2dVector* keypoints)
 
       default:
         //Something gone horribly wrong. Inform about it.
-        VV_LOG_RESULT_CODE(returnVal);
+        VVLOG_RESULT_CODE(returnVal);
         break;
     }
   }

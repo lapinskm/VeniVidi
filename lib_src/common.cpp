@@ -2,7 +2,7 @@
 
 std::mutex VVLogMtx;
 
-void displayMatrix(cv::Mat mat)
+void VV::displayMatrix(cv::Mat mat)
 {
    for(int i=0; i<mat.rows; i++)
    {
