@@ -41,12 +41,34 @@ class DataPoint2dVector
     DataPoint2dVector(std::vector<cv::Point2d> points, cv::Mat descriptors)
     :m_points(points)
     ,m_descriptors(descriptors)
+    ,m_isProper(true)
     {}
-    cv::Mat getDescriptors(){return m_descriptors;}
+    /* This constructor should not be used to create any container for
+     * processed data.
+     */
+    DataPoint2dVector()
+    :m_isProper(false)
+    {}
+
+    //Getters
+    cv::Mat                  getDescriptors(){return m_descriptors;}
     std::vector<cv::Point2d> getPoints() {return m_points;}
 
+    //Returns DataPoint2dVector subset contained between firstIndex and
+    //lastIndex including specified.
+    //modyfiyng subset's descriptors will affect whole vector's descriptors
+    DataPoint2dVector getDataSubset(unsigned firstIndex, unsigned lastIndex);
+    bool sanityCheck();
+
   private:
-    DataPoint2dVector();
+    //Setters
+    void setPoints(std::vector<cv::Point2d> points){m_points = points;}
+    void setDescriptors(cv::Mat descriptors){m_descriptors = descriptors;}
+
+    //Flag used in sanity check.
+    bool m_isProper;
+
+    //Actual data.
     cv::Mat  m_descriptors;
     std::vector<cv::Point2d> m_points;
 };
