@@ -6,7 +6,7 @@ using namespace cv;
 using namespace VV;
 
 /*************************FIXTURE SECTION**************************/
-class utilsTest : public VVTestBase
+class utilsTest :public VVTestBase
 {
   protected:
     Mat image1;
@@ -69,4 +69,78 @@ TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_lena)
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
 }
 
+TEST_F(utilsTest, segmentate_dataSmallerThanJobPool)
+{
+  segmentation segm = segmentate(5, 3);
+  ASSERT_EQ(3, segm.size());
+
+  EXPECT_EQ(0, segm[0].first );
+  EXPECT_EQ(0, segm[0].second);
+
+  EXPECT_EQ(1, segm[1].first );
+  EXPECT_EQ(1, segm[1].second);
+
+  EXPECT_EQ(2, segm[2].first );
+  EXPECT_EQ(2, segm[2].second);
+}
+
+
+TEST_F(utilsTest, segmentate_dataSizeEqualJobPool)
+{
+  segmentation segm = segmentate(3, 3);
+  ASSERT_EQ(3, segm.size());
+
+  EXPECT_EQ(0, segm[0].first );
+  EXPECT_EQ(0, segm[0].second);
+
+  EXPECT_EQ(1, segm[1].first );
+  EXPECT_EQ(1, segm[1].second);
+
+  EXPECT_EQ(2, segm[2].first );
+  EXPECT_EQ(2, segm[2].second);
+}
+
+
+TEST_F(utilsTest, segmentate_dataDividesEqually)
+{
+  segmentation segm = segmentate(3, 12);
+  ASSERT_EQ(3, segm.size());
+
+  EXPECT_EQ(0, segm[0].first );
+  EXPECT_EQ(3, segm[0].second);
+
+  EXPECT_EQ(4, segm[1].first );
+  EXPECT_EQ(7, segm[1].second);
+
+  EXPECT_EQ(8,  segm[2].first );
+  EXPECT_EQ(11, segm[2].second);
+
+}
+
+TEST_F(utilsTest, segmentate_dataDividesNotEqually)
+{
+  segmentation segm = segmentate(3, 17);
+  ASSERT_EQ(3, segm.size());
+
+  EXPECT_EQ(0, segm[0].first );
+  EXPECT_EQ(5, segm[0].second);
+
+  EXPECT_EQ(6,  segm[1].first );
+  EXPECT_EQ(11, segm[1].second);
+
+  EXPECT_EQ(12, segm[2].first );
+  EXPECT_EQ(16, segm[2].second);
+}
+
+TEST_F(utilsTest, segmentate_noThreads)
+{
+  segmentation segm = segmentate(0, 6);
+  ASSERT_EQ(0, segm.size());
+}
+
+TEST_F(utilsTest, segmentate_noData)
+{
+  segmentation segm = segmentate(5, 0);
+  ASSERT_EQ(0, segm.size());
+}
 

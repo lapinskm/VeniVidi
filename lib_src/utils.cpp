@@ -7,6 +7,7 @@
 using namespace VV;
 using namespace cv;
 using std::string;
+using std::pair;
 
 
 bool VV::imagesAlmostSame(Mat& image1, Mat& image2)
@@ -66,5 +67,58 @@ ResultCode loadImage(const string& path, Mat& image)
   }
   image = imread(path, CV_LOAD_IMAGE_GRAYSCALE);
   return(image.data ? success : failure);
+}
+
+//returns vector of pairs of indexes determining optimal segmentation
+segmentation VV::segmentate(unsigned threadCount,
+                        unsigned dataSize)
+{
+  segmentation segm;
+
+  if( 0 == dataSize || 0 == threadCount )
+  { //return empty vector
+    return segm;
+  }
+
+  if(dataSize <= threadCount)
+  {
+    for (int i=0; i < dataSize; i++)
+    {
+      segm.push_back(pair<unsigned, unsigned>(i,i));
+    }
+    return segm;
+  }
+
+  unsigned partSize = dataSize / threadCount;
+
+  unsigned partStart = 0;
+
+  // + 1 is to remove factoral element in division
+  // - 1 is due to indexing is starting on 0
+  unsigned partEnd = partSize + 1 - 1;
+
+  unsigned unSegmentedDataSize = dataSize;
+
+  while(0 != unSegmentedDataSize % partSize)
+  {
+   segm.push_back(pair<unsigned, unsigned>(partStart, partEnd));
+   //calculating next indexes
+   partStart = partEnd + 1;
+   partEnd = partStart + partSize;
+   unSegmentedDataSize -= (partSize + 1);
+  }
+
+  partEnd--;//rest parts is partSize (no partSize+1), so should be 1 smaller.
+  //now we can segmentate rest without spare data.
+  while(0 != unSegmentedDataSize)
+  {
+    segm.push_back(pair<unsigned, unsigned>(partStart, partEnd));
+    //calculating next indexes
+    partStart = partEnd + 1;
+    partEnd = partStart + partSize - 1;
+    unSegmentedDataSize -= partSize;
+  }
+
+  return segm;
 }
 
