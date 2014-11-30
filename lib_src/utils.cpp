@@ -37,28 +37,6 @@ bool VV::imagesAlmostSame(Mat& image1, Mat& image2)
   }
 }
 
-bool imageIsProcessworthy(Mat& image, Mat& previousImage)
-{
-  if( !image.data )
-  {
-     return false;
-  }
-
-  if( image.rows == 0 || image.cols == 0 )
-  {
-    return false;
-  }
-
-  //Check if this is image is not too similar to previous one
-  //(e.g. camera stayed in the same place between images)
-  if( imagesAlmostSame(image, previousImage) )
-  {
-    return false;
-  }
-
-  return true;
-}
-
 ResultCode loadImage(const string& path, Mat& image)
 {
   if ( path.empty() )

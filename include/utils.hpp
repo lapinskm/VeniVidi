@@ -14,7 +14,6 @@ typedef std::vector<std::pair<unsigned, unsigned>> segmentation;
 segmentation segmentate(unsigned threadCount, unsigned dataSize);
 
 bool imagesAlmostSame(cv::Mat& image1, cv::Mat& image2);
-bool imageIsProcessworthy(cv::Mat& image, cv::Mat& previousImage);
 ResultCode loadImage(const std::string& path, cv::Mat& image);
 
 }/*namespace VV*/
