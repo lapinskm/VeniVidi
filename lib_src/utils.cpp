@@ -37,7 +37,7 @@ bool VV::imagesAlmostSame(Mat& image1, Mat& image2)
   }
 }
 
-ResultCode loadImage(const string& path, Mat& image)
+ResultCode VV::loadImage(const string& path, Mat& image)
 {
   if ( path.empty() )
   {
