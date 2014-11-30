@@ -58,6 +58,13 @@ class DataPoint2dVector
     //lastIndex including specified.
     //modyfiyng subset's descriptors will affect whole vector's descriptors
     DataPoint2dVector getDataSubset(unsigned firstIndex, unsigned lastIndex);
+
+    int getSize()
+    {
+      //function assumes sanity of data
+      return m_descriptors.rows;
+    }
+
     bool sanityCheck();
 
   private:

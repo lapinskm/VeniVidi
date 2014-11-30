@@ -88,6 +88,11 @@ TEST_F(dataTypesTest, DataPoint2dVector_getDescriptors)
   EXPECT_TRUE(matsEqual(desriptors, vect.getDescriptors(), 0));
 }
 
+TEST_F(dataTypesTest, DataPoint2dVector_getSize)
+{
+  DataPoint2dVector vect=createTestDataPoint2dVector(5);
+  EXPECT_EQ(5, vect.getSize());
+}
 
 TEST_F(dataTypesTest, DataPoint2dVector_getDataSubset_properParams)
 {
