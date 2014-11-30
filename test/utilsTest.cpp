@@ -32,21 +32,21 @@ TEST_F(utilsTest, imagesAlmostSame_sizeNotMatch)
   EXPECT_FALSE( imagesAlmostSame(image1, image2));
 }
 
-TEST_F(utilsTest,  imagesAlmostSame_negativeCase)
+TEST_F(utilsTest, imagesAlmostSame_negativeCase)
 {
   image1 = imread("lena-gray.png"       , CV_LOAD_IMAGE_GRAYSCALE);
   image2 = imread("lena-gray-120deg.png", CV_LOAD_IMAGE_GRAYSCALE);
   EXPECT_FALSE( imagesAlmostSame(image1, image2));
 }
 
-TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_blank)
+TEST_F(utilsTest, imagesAlmostSame_PositiveCase_blank)
 {
   image1 = Mat::zeros(200, 100, numericDataType);
   image2 = Mat::zeros(200, 100, numericDataType);
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
 }
 
-TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_sameImg)
+TEST_F(utilsTest, imagesAlmostSame_PositiveCase_sameImg)
 {
   image1 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
   image2 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
@@ -57,8 +57,7 @@ TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_sameImg)
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
 }
 
-
-TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_lena)
+TEST_F(utilsTest, imagesAlmostSame_PositiveCase_lena)
 {
   image1 = imread("lena-gray.png"          , CV_LOAD_IMAGE_GRAYSCALE);
   image2 = imread("lena-gray-0_09noise.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -67,6 +66,30 @@ TEST_F(utilsTest,  imagesAlmostSame_PositiveCase_lena)
   ASSERT_TRUE(image2.data);
 
   EXPECT_TRUE( imagesAlmostSame(image1, image2));
+}
+
+TEST_F(utilsTest, loadImage_PositiveCase)
+{
+  EXPECT_EQ(success, loadImage("lena-gray.png", image1) );
+
+  ASSERT_TRUE(image1.data);
+
+  EXPECT_EQ(512, image1.rows);
+  EXPECT_EQ(512, image1.cols);
+}
+
+TEST_F(utilsTest, loadImage_NoFile)
+{
+  EXPECT_EQ(failure, loadImage("thereIsNoSuchFile.nsf", image1) );
+
+  EXPECT_FALSE(image1.data);
+}
+
+TEST_F(utilsTest, loadImage_emptyFilename)
+{
+  EXPECT_EQ(wrongParams, loadImage("", image1) );
+
+  EXPECT_FALSE(image1.data);
 }
 
 TEST_F(utilsTest, segmentate_dataSmallerThanJobPool)
@@ -84,7 +107,6 @@ TEST_F(utilsTest, segmentate_dataSmallerThanJobPool)
   EXPECT_EQ(2, segm[2].second);
 }
 
-
 TEST_F(utilsTest, segmentate_dataSizeEqualJobPool)
 {
   segmentation segm = segmentate(3, 3);
@@ -99,7 +121,6 @@ TEST_F(utilsTest, segmentate_dataSizeEqualJobPool)
   EXPECT_EQ(2, segm[2].first );
   EXPECT_EQ(2, segm[2].second);
 }
-
 
 TEST_F(utilsTest, segmentate_dataDividesEqually)
 {
