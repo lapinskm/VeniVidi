@@ -6,11 +6,13 @@
 #include <opencv2/opencv.hpp>
 #include <queue>
 #include <string>
+#include <assert.h>
 
 using namespace VV;
 using cv::Mat;
 using std::string;
 using std::queue;
+using std::pair;
 
 JobManager::JobManager(DataManager* data_manager)
   :m_DatMgr(data_manager)
@@ -70,9 +72,10 @@ void JobManager::onExtractionFinished(DataPoint2dVector* keypoints)
         //job started succesfully. Remove data from queue,
         extractorDataQueue.pop();
         //and increment Job counter
-        //TODO: Add mutex or other mechanism to prevent exceed maximum job count
+        //TODO: Add mutex or other mechanism to prevent exceed
+        //      maximum job count
         m_extrJobCount++;
-        startMatcher(keypoints);
+        processKeypoints(*keypoints);
         break;
 
       case postponed:
@@ -92,8 +95,20 @@ void onExtractionFailed()
    VVLOG("onExtractionFailed called");
 }
 
-ResultCode JobManager::startMatcher(DataPoint2dVector* newKeypoints)
+ResultCode JobManager::processKeypoints(DataPoint2dVector& keypoints)
 {
-  //TODO: Implement this
+  m_matcherDataSegm = segmentate(m_matcherThreadCount, keypoints.getSize());
+  for(int i = 0; i < m_matcherDataSegm.size(); i++)
+  {
+    DataPoint2dVector processedSubset;
+
+    processedSubset = keypoints.getDataSubset(m_matcherDataSegm[i].first,
+                                              m_matcherDataSegm[i].second);
+    startMatcher(processedSubset.getDescriptors(),
+                 m_DatMgr->getSceneData()->getDescriptors(), i);
+  }
+
   return success;
 }
+
+

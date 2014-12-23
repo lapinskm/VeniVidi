@@ -2,6 +2,7 @@
 #define JOB_MANAGER_HPP
 
 #include "common.hpp"
+#include "utils.hpp"
 #include "DataManager.hpp"
 #include "FeaturePointMatcher.hpp"
 #include "FeaturePointExtractor.hpp"
@@ -26,7 +27,7 @@ class JobManager: public FeaturePointExtractorUser
     void onExtractionFinished(DataPoint2dVector* result);
     void onExtractionFailed();
 
-    ResultCode startMatcher(DataPoint2dVector* newKeypoints);
+    ResultCode processKeypoints(DataPoint2dVector& newKeypoints);
 
     void onMatchingFinished(std::vector<cv::DMatch>* result, int id){};
     void onMatchingFailed(int id){};
@@ -38,8 +39,11 @@ class JobManager: public FeaturePointExtractorUser
     unsigned m_extrJobCountMax;
     unsigned m_extrJobCount;
 
-    //Amount of threads used to matching keypoints
+    //Amount of threads used to matching keypoints.
     unsigned m_matcherThreadCount;
+
+    //Segmentation of currently processed data.
+    segmentation m_matcherDataSegm;
 
     //pointer to Data  manager. Object is owned by SceneGenerator
     DataManager* m_DatMgr;

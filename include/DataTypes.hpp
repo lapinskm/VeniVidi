@@ -17,7 +17,7 @@ class DataPoint3dVector
     void addPoint(cv::Point3d point, cv::Mat descriptor);
     void addImageToPoint(int imageId);
 
-    cv::Mat getDescriptors() {return m_descriptors;}
+    cv::Mat& getDescriptors() {return m_descriptors;}
     std::vector<cv::Point3d> getPoints() {return m_points;}
     std::vector<int> getImageIds(int i) {return m_imageIds[i];}
 
@@ -51,7 +51,7 @@ class DataPoint2dVector
     {}
 
     //Getters
-    cv::Mat                  getDescriptors(){return m_descriptors;}
+    cv::Mat&                 getDescriptors(){return m_descriptors;}
     std::vector<cv::Point2d> getPoints() {return m_points;}
 
     //Returns DataPoint2dVector subset contained between firstIndex and
